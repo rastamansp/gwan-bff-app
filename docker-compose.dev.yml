@@ -1,0 +1,21 @@
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gwan_bff_api_dev
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev
+    networks:
+      - gwan_dev
+
+networks:
+  gwan_dev:
+    name: gwan_dev 

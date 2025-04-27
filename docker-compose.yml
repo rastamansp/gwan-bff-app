@@ -1,0 +1,17 @@
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: gwan_bff_api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - gwan
+
+networks:
+  gwan:
+    external: true 
