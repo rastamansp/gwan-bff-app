@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies (including devDependencies)
-RUN npm install
+RUN npm ci --prefer-offline --no-audit --progress=false
 
 # Copy source code
 COPY . .
@@ -23,7 +23,7 @@ WORKDIR /app
 # Install production dependencies
 COPY package*.json ./
 RUN apk add --no-cache wget && \
-    npm ci --omit=dev && \
+    npm ci --prefer-offline --no-audit --progress=false --omit=dev && \
     npm cache clean --force
 
 # Copy built application
