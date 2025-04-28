@@ -27,7 +27,14 @@ let UserRepositoryImpl = class UserRepositoryImpl {
         return this.userModel.find().exec();
     }
     async create(data) {
-        const user = new this.userModel(data);
+        const userData = {
+            name: data.name,
+            email: data.email,
+            whatsapp: data.whatsapp,
+            isActive: data.isActive ?? true,
+            isVerified: data.isVerified ?? false,
+        };
+        const user = new this.userModel(userData);
         return user.save();
     }
     async update(id, data) {

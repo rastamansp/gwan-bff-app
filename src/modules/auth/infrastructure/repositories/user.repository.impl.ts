@@ -19,7 +19,16 @@ export class UserRepositoryImpl implements IUserRepository {
   }
 
   async create(data: Partial<User>): Promise<User> {
-    const user = new this.userModel(data);
+    // Garante que todos os campos obrigatórios estejam presentes
+    const userData = {
+      name: data.name,
+      email: data.email,
+      whatsapp: data.whatsapp,
+      isActive: data.isActive ?? true,
+      isVerified: data.isVerified ?? false,
+    };
+
+    const user = new this.userModel(userData);
     return user.save();
   }
 

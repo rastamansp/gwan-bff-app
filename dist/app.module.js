@@ -13,15 +13,17 @@ const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const hello_module_1 = require("./modules/hello/hello.module");
 const auth_module_1 = require("./modules/auth/auth.module");
+const health_module_1 = require("./modules/health/health.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot('mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin'),
+            mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/gwan'),
             hello_module_1.HelloModule,
             auth_module_1.AuthModule,
+            health_module_1.HealthModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

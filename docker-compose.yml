@@ -34,7 +34,7 @@ services:
     labels:
       # Configurações do Traefik para domínio e HTTPS
       - "traefik.enable=true"
-      - "traefik.http.routers.gwan-bff-app.rule=Host(`api.gwan.com.br`)"
+      - "traefik.http.routers.gwan-bff-app.rule=Host(`bff.gwan.com.br`)"
       - "traefik.http.routers.gwan-bff-app.entrypoints=websecure"
       - "traefik.http.routers.gwan-bff-app.tls.certresolver=letsencrypt"
       - "traefik.http.services.gwan-bff-app.loadbalancer.server.port=3000"
