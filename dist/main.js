@@ -10,7 +10,9 @@ async function bootstrap() {
             'http://localhost:5173',
             'http://localhost:5174',
             'https://bff.gwan.com.br',
-            'https://www.bff.gwan.com.br'
+            'https://www.bff.gwan.com.br',
+            'https://admin.gwan.com.br',
+            'https://www.admin.gwan.com.br'
         ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],

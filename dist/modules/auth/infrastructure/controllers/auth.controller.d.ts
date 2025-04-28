@@ -23,5 +23,8 @@ export declare class AuthController {
     verifyLogin(data: {
         email: string;
         code: string;
-    }): Promise<import("../../domain/entities/user.entity").User>;
+    }): Promise<{
+        user: import("../../domain/entities/user.entity").User;
+        token: string;
+    }>;
 }

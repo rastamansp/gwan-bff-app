@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const jwt_1 = require("@nestjs/jwt");
 const auth_controller_1 = require("./infrastructure/controllers/auth.controller");
 const user_service_1 = require("./domain/services/user.service");
 const register_use_case_1 = require("./domain/use-cases/register.use-case");
@@ -24,6 +25,10 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: user_entity_1.User.name, schema: user_entity_1.UserSchema }]),
+            jwt_1.JwtModule.register({
+                secret: process.env.JWT_SECRET || 'gwan-secret-key-production-2024',
+                signOptions: { expiresIn: process.env.JWT_EXPIRATION || '1d' },
+            }),
         ],
         controllers: [auth_controller_1.AuthController],
         providers: [

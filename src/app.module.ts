@@ -8,7 +8,7 @@ import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/gwan'),
+    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://mongodb.gwan.com.br:27017/gwan'),
     HelloModule,
     AuthModule,
     HealthModule,

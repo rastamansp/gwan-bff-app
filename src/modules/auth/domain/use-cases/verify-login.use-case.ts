@@ -2,14 +2,18 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { User } from '../entities/user.entity';
 import { UserService } from '../services/user.service';
 import { BaseUseCase } from '../../../../core/domain/use-cases/base.use-case';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class VerifyLoginUseCase extends BaseUseCase<User> {
-  constructor(private readonly userService: UserService) {
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService
+  ) {
     super(userService);
   }
 
-  async execute(data: { email: string; code: string }): Promise<User> {
+  async execute(data: { email: string; code: string }): Promise<{ user: User; token: string }> {
     // Busca o usuário pelo email
     const user = await this.userService.findByEmail(data.email);
     if (!user) {
@@ -56,6 +60,18 @@ export class VerifyLoginUseCase extends BaseUseCase<User> {
     }
 
     // Atualiza o último login e limpa o código
-    return this.userService.updateLastLogin(user.id);
+    const updatedUser = await this.userService.updateLastLogin(user.id);
+
+    // Gera o token JWT
+    const token = this.jwtService.sign({
+      sub: updatedUser.id,
+      email: updatedUser.email,
+      name: updatedUser.name
+    });
+
+    return {
+      user: updatedUser,
+      token
+    };
   }
 } 

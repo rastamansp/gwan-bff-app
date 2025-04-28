@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './infrastructure/controllers/auth.controller';
 import { UserService } from './domain/services/user.service';
 import { RegisterUseCase } from './domain/use-cases/register.use-case';
@@ -12,6 +13,10 @@ import { User, UserSchema } from './domain/entities/user.entity';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'gwan-secret-key-production-2024',
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION || '1d' },
+    }),
   ],
   controllers: [AuthController],
   providers: [

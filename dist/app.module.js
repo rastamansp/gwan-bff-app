@@ -20,7 +20,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/gwan'),
+            mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://mongodb.gwan.com.br:27017/gwan'),
             hello_module_1.HelloModule,
             auth_module_1.AuthModule,
             health_module_1.HealthModule,
