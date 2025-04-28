@@ -34,19 +34,21 @@ services:
     labels:
       # Configurações do Traefik para domínio e HTTPS
       - "traefik.enable=true"
-      - "traefik.http.routers.gwan-bff-app.rule=Host(`bff.gwan.com.br`)"
-      - "traefik.http.routers.gwan-bff-app.entrypoints=websecure"
-      - "traefik.http.routers.gwan-bff-app.tls.certresolver=letsencrypt"
-      - "traefik.http.services.gwan-bff-app.loadbalancer.server.port=3000"
+      - "traefik.docker.network=gwan"
+      - "traefik.http.routers.gwan-bff.rule=Host(`bff.gwan.com.br`)"
+      - "traefik.http.routers.gwan-bff.entrypoints=websecure"
+      - "traefik.http.routers.gwan-bff.tls=true"
+      - "traefik.http.routers.gwan-bff.tls.certresolver=letsencrypt"
+      - "traefik.http.services.gwan-bff.loadbalancer.server.port=3000"
       # Security headers
-      - "traefik.http.middlewares.gwan-bff-app-headers.headers.sslRedirect=true"
-      - "traefik.http.middlewares.gwan-bff-app-headers.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.gwan-bff-app-headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.gwan-bff-app-headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.gwan-bff-app-headers.headers.forceSTSHeader=true"
-      - "traefik.http.middlewares.gwan-bff-app-headers.headers.stsIncludeSubdomains=true"
-      - "traefik.http.middlewares.gwan-bff-app-headers.headers.stsPreload=true"
-      - "traefik.http.routers.gwan-bff-app.middlewares=gwan-bff-app-headers"
+      - "traefik.http.middlewares.gwan-bff-headers.headers.sslRedirect=true"
+      - "traefik.http.middlewares.gwan-bff-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.gwan-bff-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.gwan-bff-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.gwan-bff-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.gwan-bff-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.gwan-bff-headers.headers.stsPreload=true"
+      - "traefik.http.routers.gwan-bff.middlewares=gwan-bff-headers"
     networks:
       - gwan  # Usa a rede externa 'gwan'
 
