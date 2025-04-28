@@ -1,8 +1,30 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import * as mongoose from 'mongoose';
 
 async function bootstrap() {
+  // Adiciona listener para logs do Mongoose
+  mongoose.connection.on('connected', async () => {
+    console.log('[MongoDB] Conexão estabelecida com sucesso');
+    // Tenta obter informações do usuário conectado
+    try {
+      const db = mongoose.connection.db;
+      const result = await db.command({ connectionStatus: 1 });
+      console.log('[MongoDB] Usuário autenticado:', result?.authInfo?.authenticatedUsers?.[0]?.user || 'não disponível');
+    } catch (err) {
+      console.error('[MongoDB] Erro ao obter status da conexão:', err);
+    }
+  });
+
+  mongoose.connection.on('error', (err) => {
+    console.error('[MongoDB] Erro na conexão:', err);
+  });
+
+  mongoose.connection.on('disconnected', () => {
+    console.log('[MongoDB] Desconectado');
+  });
+
   const app = await NestFactory.create(AppModule);
 
   // Configuração do CORS
