@@ -3,11 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (including devDependencies)
-RUN npm ci --prefer-offline --no-audit --progress=false
+# Install dependencies
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -20,11 +23,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install production dependencies
+# Copy package files
 COPY package*.json ./
-RUN apk add --no-cache wget && \
-    npm ci --prefer-offline --no-audit --progress=false --omit=dev && \
-    npm cache clean --force
+
+# Install production dependencies
+RUN npm install --production
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
