@@ -1,17 +1,52 @@
+version: '3.8'
+
 services:
   api:
     build: 
-      context: .
+      context: https://github.com/rastamansp/gwan-bff-app.git#main  # Usa o repositório git como contexto
       dockerfile: Dockerfile
     container_name: gwan_bff_api
-    restart: always
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Mapeia a porta 3000 do host para o container
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=production  # Define ambiente de produção
+      - TZ=America/Sao_Paulo
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      # Configurações do Traefik para domínio e HTTPS
+      - "traefik.enable=true"
+      - "traefik.http.routers.gwan-bff-app.rule=Host(`api.gwan.com.br`)"
+      - "traefik.http.routers.gwan-bff-app.entrypoints=websecure"
+      - "traefik.http.routers.gwan-bff-app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.gwan-bff-app.loadbalancer.server.port=3000"
+      # Security headers
+      - "traefik.http.middlewares.gwan-bff-app-headers.headers.sslRedirect=true"
+      - "traefik.http.middlewares.gwan-bff-app-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.gwan-bff-app-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.gwan-bff-app-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.gwan-bff-app-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.gwan-bff-app-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.gwan-bff-app-headers.headers.stsPreload=true"
+      - "traefik.http.routers.gwan-bff-app.middlewares=gwan-bff-app-headers"
     networks:
-      - gwan
+      - gwan  # Usa a rede externa 'gwan'
 
 networks:
   gwan:
-    external: true 
+    external: true  # Rede deve existir previamente no Docker
