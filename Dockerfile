@@ -9,9 +9,9 @@ RUN apk add --no-cache wget
 COPY . .
 
 # Install dependencies and build
-RUN npm install && \
+RUN npm install --legacy-peer-deps && \
     npm run build && \
-    npm prune --production
+    npm prune --production --legacy-peer-deps
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
