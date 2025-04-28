@@ -3,7 +3,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies for build
 COPY package*.json ./
 RUN npm ci
 
@@ -18,16 +18,20 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install production dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm ci --only=production
+
+# Install only production dependencies
+RUN apk add --no-cache wget && \
+    npm ci --only=production && \
+    npm cache clean --force
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
 
 # Create non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-RUN chown -R appuser:appgroup /app
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app
 USER appuser
 
 # Health check
