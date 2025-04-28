@@ -8,7 +8,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VerifyLoginUseCase = void 0;
 const common_1 = require("@nestjs/common");
@@ -76,6 +75,7 @@ let VerifyLoginUseCase = class VerifyLoginUseCase extends base_use_case_1.BaseUs
 exports.VerifyLoginUseCase = VerifyLoginUseCase;
 exports.VerifyLoginUseCase = VerifyLoginUseCase = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [user_service_1.UserService, typeof (_a = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _a : Object])
+    __metadata("design:paramtypes", [user_service_1.UserService,
+        jwt_1.JwtService])
 ], VerifyLoginUseCase);
 //# sourceMappingURL=verify-login.use-case.js.map

@@ -8,22 +8,42 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const mongoose_1 = require("@nestjs/mongoose");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const hello_module_1 = require("./modules/hello/hello.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const health_module_1 = require("./modules/health/health.module");
+const email_module_1 = require("./workers/email/email.module");
+function extractMongoUser(uri) {
+    try {
+        const matches = uri.match(/mongodb:\/\/([^:]+):/);
+        return matches ? matches[1] : 'não encontrado';
+    }
+    catch (error) {
+        return 'erro ao extrair';
+    }
+}
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://mongodb.gwan.com.br:27017/gwan'),
+            config_1.ConfigModule.forRoot(),
+            mongoose_1.MongooseModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                useFactory: () => {
+                    const uri = process.env.MONGODB_URI || 'mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin';
+                    console.log(process.env.MONGODB_URI);
+                    return { uri };
+                },
+            }),
             hello_module_1.HelloModule,
             auth_module_1.AuthModule,
             health_module_1.HealthModule,
+            email_module_1.EmailWorkerModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

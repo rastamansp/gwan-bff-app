@@ -12,11 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegisterUseCase = void 0;
 const common_1 = require("@nestjs/common");
 const user_service_1 = require("../services/user.service");
+const notification_service_1 = require("../services/notification.service");
 const base_use_case_1 = require("../../../../core/domain/use-cases/base.use-case");
 let RegisterUseCase = class RegisterUseCase extends base_use_case_1.BaseUseCase {
-    constructor(userService) {
+    constructor(userService, notificationService) {
         super(userService);
         this.userService = userService;
+        this.notificationService = notificationService;
     }
     async execute(data) {
         const existingUser = await this.userService.findByEmail(data.email);
@@ -48,13 +50,15 @@ let RegisterUseCase = class RegisterUseCase extends base_use_case_1.BaseUseCase 
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 10);
         await this.userService.updateActivationCode(user.id, activationCode, expiresAt);
-        console.log(`Código de ativação: ${activationCode}`);
+        await this.notificationService.sendEmail(user.email, 'Código de Verificação - GWAN', `Olá ${user.name},\n\nSeu código de verificação é: ${activationCode}\n\nEste código é válido por 10 minutos.`);
+        await this.notificationService.sendWhatsApp(user.whatsapp, `GWAN: Seu código de verificação é: ${activationCode}. Válido por 10 minutos.`);
         return user;
     }
 };
 exports.RegisterUseCase = RegisterUseCase;
 exports.RegisterUseCase = RegisterUseCase = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [user_service_1.UserService])
+    __metadata("design:paramtypes", [user_service_1.UserService,
+        notification_service_1.NotificationService])
 ], RegisterUseCase);
 //# sourceMappingURL=register.use-case.js.map

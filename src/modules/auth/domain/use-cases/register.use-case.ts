@@ -1,11 +1,15 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { User } from '../entities/user.entity';
 import { UserService } from '../services/user.service';
+import { NotificationService } from '../services/notification.service';
 import { BaseUseCase } from '../../../../core/domain/use-cases/base.use-case';
 
 @Injectable()
 export class RegisterUseCase extends BaseUseCase<User> {
-  constructor(private readonly userService: UserService) {
+  constructor(
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService
+  ) {
     super(userService);
   }
 
@@ -49,8 +53,18 @@ export class RegisterUseCase extends BaseUseCase<User> {
     // Atualiza o usuário com o código de verificação
     await this.userService.updateActivationCode(user.id, activationCode, expiresAt);
 
-    // TODO: Enviar código por WhatsApp
-    console.log(`Código de ativação: ${activationCode}`);
+    // Envia o código por email
+    await this.notificationService.sendEmail(
+      user.email,
+      'Código de Verificação - GWAN',
+      `Olá ${user.name},\n\nSeu código de verificação é: ${activationCode}\n\nEste código é válido por 10 minutos.`
+    );
+
+    // Envia o código por WhatsApp
+    await this.notificationService.sendWhatsApp(
+      user.whatsapp,
+      `GWAN: Seu código de verificação é: ${activationCode}. Válido por 10 minutos.`
+    );
 
     return user;
   }

@@ -18,6 +18,8 @@ const login_use_case_1 = require("./domain/use-cases/login.use-case");
 const verify_login_use_case_1 = require("./domain/use-cases/verify-login.use-case");
 const user_repository_impl_1 = require("./infrastructure/repositories/user.repository.impl");
 const user_entity_1 = require("./domain/entities/user.entity");
+const notification_service_1 = require("./domain/services/notification.service");
+const rabbitmq_service_1 = require("./domain/services/rabbitmq.service");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -38,6 +40,8 @@ exports.AuthModule = AuthModule = __decorate([
             login_use_case_1.LoginUseCase,
             verify_login_use_case_1.VerifyLoginUseCase,
             user_repository_impl_1.UserRepositoryImpl,
+            notification_service_1.NotificationService,
+            rabbitmq_service_1.RabbitMQService,
             {
                 provide: 'IUserRepository',
                 useClass: user_repository_impl_1.UserRepositoryImpl,

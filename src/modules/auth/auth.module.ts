@@ -9,6 +9,8 @@ import { LoginUseCase } from './domain/use-cases/login.use-case';
 import { VerifyLoginUseCase } from './domain/use-cases/verify-login.use-case';
 import { UserRepositoryImpl } from './infrastructure/repositories/user.repository.impl';
 import { User, UserSchema } from './domain/entities/user.entity';
+import { NotificationService } from './domain/services/notification.service';
+import { RabbitMQService } from './domain/services/rabbitmq.service';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { User, UserSchema } from './domain/entities/user.entity';
     LoginUseCase,
     VerifyLoginUseCase,
     UserRepositoryImpl,
+    NotificationService,
+    RabbitMQService,
     {
       provide: 'IUserRepository',
       useClass: UserRepositoryImpl,

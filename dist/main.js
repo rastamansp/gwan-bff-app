@@ -3,7 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const swagger_1 = require("@nestjs/swagger");
 const app_module_1 = require("./app.module");
+const mongoose = require("mongoose");
 async function bootstrap() {
+    mongoose.connection.on('connected', async () => {
+        console.log('[MongoDB] Conexão estabelecida com sucesso');
+        try {
+            const db = mongoose.connection.db;
+            const result = await db.command({ connectionStatus: 1 });
+            console.log('[MongoDB] Usuário autenticado:', result?.authInfo?.authenticatedUsers?.[0]?.user || 'não disponível');
+        }
+        catch (err) {
+            console.error('[MongoDB] Erro ao obter status da conexão:', err);
+        }
+    });
+    mongoose.connection.on('error', (err) => {
+        console.error('[MongoDB] Erro na conexão:', err);
+    });
+    mongoose.connection.on('disconnected', () => {
+        console.log('[MongoDB] Desconectado');
+    });
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
         origin: [
