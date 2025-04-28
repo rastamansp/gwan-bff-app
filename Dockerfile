@@ -1,36 +1,17 @@
-# Build stage
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Install build dependencies
-RUN apk add --no-cache python3 make g++
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Build application
-RUN npm run build
-
-# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install dependencies
+RUN apk add --no-cache wget
 
-# Install production dependencies
-RUN npm install --production
+# Copy application files
+COPY . .
 
-# Copy built application
-COPY --from=builder /app/dist ./dist
+# Install dependencies and build
+RUN npm install && \
+    npm run build && \
+    npm prune --production
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
