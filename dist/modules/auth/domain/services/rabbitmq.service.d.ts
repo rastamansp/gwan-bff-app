@@ -1,4 +1,5 @@
 export declare class RabbitMQService {
+    private readonly logger;
     private connection;
     private channel;
     constructor();

@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as amqp from 'amqplib';
 
 @Injectable()
 export class RabbitMQService {
+  private readonly logger = new Logger(RabbitMQService.name);
   private connection!: amqp.Connection;
   private channel!: amqp.Channel;
 
@@ -12,53 +13,69 @@ export class RabbitMQService {
 
   private async connect() {
     try {
-      // Conecta ao RabbitMQ usando as credenciais do docker-compose
+      this.logger.log('Iniciando conexão com RabbitMQ...');
       const conn = await amqp.connect('amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br');
       this.connection = conn as unknown as amqp.Connection;
       const ch = await conn.createChannel();
       this.channel = ch as unknown as amqp.Channel;
 
       // Declara as filas que serão utilizadas
-      await this.channel.assertQueue('email_notifications', { durable: true });
+      this.logger.log('Declarando filas...');
+      await this.channel.assertQueue('email_notifications', { 
+        durable: true,
+        arguments: {
+          'x-message-ttl': 86400000, // 24 horas em milissegundos
+          'x-dead-letter-exchange': 'email_notifications_dlx',
+          'x-dead-letter-routing-key': 'email_notifications'
+        }
+      });
       await this.channel.assertQueue('whatsapp_notifications', { durable: true });
+      this.logger.log('Filas declaradas com sucesso');
 
-      console.log('[RabbitMQ] Conectado com sucesso');
+      this.logger.log('[RabbitMQ] Conectado com sucesso');
     } catch (error) {
-      console.error('[RabbitMQ] Erro ao conectar:', error);
-      // Tenta reconectar após 5 segundos em caso de erro
+      this.logger.error('[RabbitMQ] Erro ao conectar:', error);
+      this.logger.log('[RabbitMQ] Tentando reconectar em 5 segundos...');
       setTimeout(() => this.connect(), 5000);
     }
   }
 
   async sendToQueue(queue: string, message: any): Promise<void> {
     try {
+      this.logger.log(`Verificando conexão com RabbitMQ para envio à fila ${queue}...`);
       if (!this.channel) {
+        this.logger.log('Canal não encontrado, tentando reconectar...');
         await this.connect();
       }
 
       const messageBuffer = Buffer.from(JSON.stringify(message));
+      this.logger.log(`Enviando mensagem para fila ${queue}: ${messageBuffer.toString()}`);
+      
       await this.channel.sendToQueue(queue, messageBuffer, {
         persistent: true
       });
 
-      console.log(`[RabbitMQ] Mensagem enviada para a fila ${queue}`);
+      this.logger.log(`[RabbitMQ] Mensagem enviada com sucesso para a fila ${queue}`);
     } catch (error) {
-      console.error(`[RabbitMQ] Erro ao enviar mensagem para a fila ${queue}:`, error);
+      this.logger.error(`[RabbitMQ] Erro ao enviar mensagem para a fila ${queue}:`, error);
       throw error;
     }
   }
 
   async closeConnection() {
     try {
+      this.logger.log('Fechando conexão com RabbitMQ...');
       if (this.channel) {
         await this.channel.close();
+        this.logger.log('Canal fechado com sucesso');
       }
       if (this.connection) {
         const conn = this.connection as unknown as { close: () => Promise<void> };
         await conn.close();
+        this.logger.log('Conexão fechada com sucesso');
       }
     } catch (error) {
-      console.error('[RabbitMQ] Erro ao fechar conexão:', error);
+      this.logger.error('[RabbitMQ] Erro ao fechar conexão:', error);
     }
   }
 } 

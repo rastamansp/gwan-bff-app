@@ -1,0 +1,65 @@
+# Dependências
+node_modules/
+dist/
+build/
+
+# Arquivos de ambiente
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Arquivos de teste
+coverage/
+.nyc_output/
+
+# Arquivos de cache
+.cache/
+.npm/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.bak
+
+# Arquivos de build
+*.tgz
+*.zip
+*.rar
+
+# Arquivos de configuração local
+*.local
+
+# Arquivos de debug
+.debug/
+
+# Arquivos de REPL
+.node_repl_history
+
+# Arquivos de integridade
+.yarn-integrity
+
+# Arquivos de Netlify
+.netlify/ 

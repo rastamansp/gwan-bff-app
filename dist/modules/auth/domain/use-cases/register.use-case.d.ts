@@ -5,6 +5,7 @@ import { BaseUseCase } from '../../../../core/domain/use-cases/base.use-case';
 export declare class RegisterUseCase extends BaseUseCase<User> {
     private readonly userService;
     private readonly notificationService;
+    private readonly logger;
     constructor(userService: UserService, notificationService: NotificationService);
     execute(data: {
         name: string;

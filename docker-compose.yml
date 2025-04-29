@@ -10,13 +10,34 @@ services:
     ports:
       - "3000:3000"  # Mapeia a porta 3000 do host para o container
     environment:
-      - NODE_ENV=production  # Define ambiente de produção
+      # Server Configuration
+      - NODE_ENV=production
       - PORT=3000
       - TZ=America/Sao_Paulo
-      - MONGODB_URI=mongodb://gwan:pazdeDeus2025@localhost:27017/gwan?authSource=admin
+      - API_PREFIX=api/v1
+
+      # MongoDB Configuration
+      - MONGODB_URI=mongodb://gwan:pazdeDeus2025@mongodb:27017/gwan?authSource=admin
+
+      # JWT Configuration
       - JWT_SECRET=gwan-secret-key-production-2024
       - JWT_EXPIRATION=1d
-      - API_PREFIX=api/v1
+
+      # SMTP Configuration
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=pedro.hp.almeida@gmail.com
+      - SMTP_PASSWORD=bqat yxtq nmby oghk
+      - SMTP_FROM_NAME=GWAN
+      - SMTP_FROM_EMAIL=noreply@gwan.com.br
+
+      # RabbitMQ Configuration
+      - RABBITMQ_URI=amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br:5672
+      - RABBITMQ_QUEUE=notifications
+
+      # CORS Configuration
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 30s

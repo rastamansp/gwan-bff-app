@@ -16,29 +16,25 @@ const hello_module_1 = require("./modules/hello/hello.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const health_module_1 = require("./modules/health/health.module");
 const email_module_1 = require("./workers/email/email.module");
-function extractMongoUser(uri) {
-    try {
-        const matches = uri.match(/mongodb:\/\/([^:]+):/);
-        return matches ? matches[1] : 'não encontrado';
-    }
-    catch (error) {
-        return 'erro ao extrair';
-    }
-}
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            config_1.ConfigModule.forRoot(),
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: '.env',
+                expandVariables: true,
+                cache: true,
+            }),
             mongoose_1.MongooseModule.forRootAsync({
                 imports: [config_1.ConfigModule],
-                useFactory: () => {
-                    const uri = process.env.MONGODB_URI || 'mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin';
-                    console.log(process.env.MONGODB_URI);
+                useFactory: (configService) => {
+                    const uri = configService.get('MONGODB_URI') || 'mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin';
                     return { uri };
                 },
+                inject: [config_1.ConfigService],
             }),
             hello_module_1.HelloModule,
             auth_module_1.AuthModule,
