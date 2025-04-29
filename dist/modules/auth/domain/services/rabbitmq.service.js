@@ -12,16 +12,22 @@ var RabbitMQService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RabbitMQService = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const amqp = require("amqplib");
 let RabbitMQService = RabbitMQService_1 = class RabbitMQService {
-    constructor() {
+    constructor(configService) {
+        this.configService = configService;
         this.logger = new common_1.Logger(RabbitMQService_1.name);
         this.connect();
     }
     async connect() {
         try {
             this.logger.log('Iniciando conexão com RabbitMQ...');
-            const conn = await amqp.connect('amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br');
+            const rabbitmqUri = this.configService.get('RABBITMQ_URL');
+            if (!rabbitmqUri) {
+                throw new Error('RABBITMQ_URI não está definida nas variáveis de ambiente');
+            }
+            const conn = await amqp.connect(rabbitmqUri);
             this.connection = conn;
             const ch = await conn.createChannel();
             this.channel = ch;
@@ -52,7 +58,7 @@ let RabbitMQService = RabbitMQService_1 = class RabbitMQService {
                 await this.connect();
             }
             const messageBuffer = Buffer.from(JSON.stringify(message));
-            this.logger.log(`Enviando mensagem para fila ${queue}: ${messageBuffer.toString()}`);
+            this.logger.debug(`Enviando mensagem para fila ${queue}: ${messageBuffer.toString()}`);
             await this.channel.sendToQueue(queue, messageBuffer, {
                 persistent: true
             });
@@ -84,6 +90,6 @@ let RabbitMQService = RabbitMQService_1 = class RabbitMQService {
 exports.RabbitMQService = RabbitMQService;
 exports.RabbitMQService = RabbitMQService = RabbitMQService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [config_1.ConfigService])
 ], RabbitMQService);
 //# sourceMappingURL=rabbitmq.service.js.map

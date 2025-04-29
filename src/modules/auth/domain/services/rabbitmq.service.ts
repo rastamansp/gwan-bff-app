@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as amqp from 'amqplib';
 
 @Injectable()
@@ -7,14 +8,20 @@ export class RabbitMQService {
   private connection!: amqp.Connection;
   private channel!: amqp.Channel;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.connect();
   }
 
   private async connect() {
     try {
       this.logger.log('Iniciando conexão com RabbitMQ...');
-      const conn = await amqp.connect('amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br');
+      
+      const rabbitmqUri = this.configService.get<string>('RABBITMQ_URL');
+      if (!rabbitmqUri) {
+        throw new Error('RABBITMQ_URI não está definida nas variáveis de ambiente');
+      }
+
+      const conn = await amqp.connect(rabbitmqUri);
       this.connection = conn as unknown as amqp.Connection;
       const ch = await conn.createChannel();
       this.channel = ch as unknown as amqp.Channel;
@@ -49,7 +56,7 @@ export class RabbitMQService {
       }
 
       const messageBuffer = Buffer.from(JSON.stringify(message));
-      this.logger.log(`Enviando mensagem para fila ${queue}: ${messageBuffer.toString()}`);
+      this.logger.debug(`Enviando mensagem para fila ${queue}: ${messageBuffer.toString()}`);
       
       await this.channel.sendToQueue(queue, messageBuffer, {
         persistent: true

@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var AuthController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
@@ -19,24 +20,66 @@ const register_use_case_1 = require("../../domain/use-cases/register.use-case");
 const verify_code_use_case_1 = require("../../domain/use-cases/verify-code.use-case");
 const login_use_case_1 = require("../../domain/use-cases/login.use-case");
 const verify_login_use_case_1 = require("../../domain/use-cases/verify-login.use-case");
-let AuthController = class AuthController {
+let AuthController = AuthController_1 = class AuthController {
     constructor(registerUseCase, verifyCodeUseCase, loginUseCase, verifyLoginUseCase) {
         this.registerUseCase = registerUseCase;
         this.verifyCodeUseCase = verifyCodeUseCase;
         this.loginUseCase = loginUseCase;
         this.verifyLoginUseCase = verifyLoginUseCase;
+        this.logger = new common_1.Logger(AuthController_1.name);
     }
     async register(data) {
-        return this.registerUseCase.execute(data);
+        this.logger.log(`[Register] Iniciando processo de registro para ${data.email}`);
+        this.logger.debug(`[Register] Dados recebidos: ${JSON.stringify({
+            name: data.name,
+            email: data.email,
+            whatsapp: data.whatsapp
+        })}`);
+        try {
+            const result = await this.registerUseCase.execute(data);
+            this.logger.log(`[Register] Registro concluído com sucesso para ${data.email}`);
+            return result;
+        }
+        catch (error) {
+            this.logger.error(`[Register] Erro no registro para ${data.email}: ${error.message}`, error.stack);
+            throw error;
+        }
     }
     async verify(data) {
-        return this.verifyCodeUseCase.execute(data);
+        this.logger.log(`[Verify] Iniciando verificação de código para ${data.email}`);
+        try {
+            const result = await this.verifyCodeUseCase.execute(data);
+            this.logger.log(`[Verify] Código verificado com sucesso para ${data.email}`);
+            return result;
+        }
+        catch (error) {
+            this.logger.error(`[Verify] Erro na verificação para ${data.email}: ${error.message}`, error.stack);
+            throw error;
+        }
     }
     async login(data) {
-        return this.loginUseCase.execute(data);
+        this.logger.log(`[Login] Iniciando processo de login para ${data.email}`);
+        try {
+            const result = await this.loginUseCase.execute(data);
+            this.logger.log(`[Login] Código de login enviado com sucesso para ${data.email}`);
+            return result;
+        }
+        catch (error) {
+            this.logger.error(`[Login] Erro no login para ${data.email}: ${error.message}`, error.stack);
+            throw error;
+        }
     }
     async verifyLogin(data) {
-        return this.verifyLoginUseCase.execute(data);
+        this.logger.log(`[VerifyLogin] Iniciando verificação de código de login para ${data.email}`);
+        try {
+            const result = await this.verifyLoginUseCase.execute(data);
+            this.logger.log(`[VerifyLogin] Código de login verificado com sucesso para ${data.email}`);
+            return result;
+        }
+        catch (error) {
+            this.logger.error(`[VerifyLogin] Erro na verificação de login para ${data.email}: ${error.message}`, error.stack);
+            throw error;
+        }
     }
 };
 exports.AuthController = AuthController;
@@ -116,7 +159,7 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyLogin", null);
-exports.AuthController = AuthController = __decorate([
+exports.AuthController = AuthController = AuthController_1 = __decorate([
     (0, swagger_1.ApiTags)('auth'),
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [register_use_case_1.RegisterUseCase,

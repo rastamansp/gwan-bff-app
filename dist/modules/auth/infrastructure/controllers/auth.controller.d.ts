@@ -7,6 +7,7 @@ export declare class AuthController {
     private readonly verifyCodeUseCase;
     private readonly loginUseCase;
     private readonly verifyLoginUseCase;
+    private readonly logger;
     constructor(registerUseCase: RegisterUseCase, verifyCodeUseCase: VerifyCodeUseCase, loginUseCase: LoginUseCase, verifyLoginUseCase: VerifyLoginUseCase);
     register(data: {
         name: string;
