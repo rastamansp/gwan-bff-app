@@ -175,12 +175,28 @@ src/
   ```
 
 ### Dataset
+- `GET /user/dataset/list` - Lista arquivos do bucket
+  ```json
+  Response (200 OK):
+  [
+    {
+      "name": "1679676892123-exemplo.pdf",
+      "size": 12345,
+      "lastModified": "2024-04-30T14:25:43.000Z",
+      "etag": "abc123"
+    }
+  ]
+
+  Errors:
+  - 500 Internal Server Error: Se houver erro ao listar arquivos ou se o bucket não existir
+  ```
+
 - `POST /user/dataset/upload` - Upload de dataset (PDF)
   ```
   Content-Type: multipart/form-data
   
   Request Body:
-  - file: [PDF File] (campo do tipo arquivo)
+  - file: [PDF File] (campo do tipo arquivo, máximo 5MB)
 
   Response (200 OK):
   {
@@ -193,9 +209,51 @@ src/
 
   Errors:
   - 400 Bad Request: Se o arquivo não for PDF
+  - 400 Bad Request: Se o arquivo exceder 5MB
   - 400 Bad Request: Se nenhum arquivo for enviado
-  - 500 Internal Server Error: Se houver erro no upload para o MinIO
+  - 500 Internal Server Error: Se houver erro no upload para o MinIO ou se o bucket não existir
   ```
+
+## 🗄️ Serviço de Arquivos (MinIO)
+
+O serviço de arquivos utiliza o MinIO como storage para armazenamento de datasets em PDF. 
+
+### Características
+- Armazenamento de arquivos PDF
+- Limite de 5MB por arquivo
+- URLs temporárias válidas por 24 horas
+- Bucket padrão: `datasets`
+
+### Configuração MinIO
+O serviço requer as seguintes variáveis de ambiente:
+```env
+MINIO_ENDPOINT=minio.gwan.com.br
+MINIO_PORT=9000
+MINIO_USE_SSL=true
+MINIO_ACCESS_KEY=your-access-key
+MINIO_SECRET_KEY=your-secret-key
+```
+
+### Pré-requisitos
+- Bucket `datasets` deve ser criado manualmente no console do MinIO
+- Configurar as políticas de acesso apropriadas no bucket
+- Garantir que o MinIO está acessível no endpoint configurado
+
+### Uso
+1. **Listar Arquivos**
+   - Endpoint: `GET /user/dataset/list`
+   - Retorna lista de arquivos no bucket com metadados
+
+2. **Upload de Arquivo**
+   - Endpoint: `POST /user/dataset/upload`
+   - Aceita apenas PDFs até 5MB
+   - Retorna URL temporária para acesso ao arquivo
+
+### Segurança
+- Arquivos acessíveis apenas via URLs temporárias
+- Validação de tipo de arquivo
+- Limite de tamanho para prevenir abusos
+- Logs detalhados para auditoria
 
 ## 📝 Logs
 
