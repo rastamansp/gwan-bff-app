@@ -79,6 +79,14 @@ WHATSAPP_BUSINESS_ACCOUNT_ID=your-business-account-id
 
 # CORS Configuration
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
+
+# MinIO Configuration
+MINIO_ENDPOINT=minio.gwan.com.br
+MINIO_PORT=9000
+MINIO_USE_SSL=true
+MINIO_ACCESS_KEY=your-access-key
+MINIO_SECRET_KEY=your-secret-key
+MINIO_BUCKET=datasets
 ```
 
 ## 🚀 Executando o projeto
@@ -164,6 +172,29 @@ src/
     "status": "ok",
     "timestamp": "2024-03-21T10:00:00.000Z"
   }
+  ```
+
+### Dataset
+- `POST /user/dataset/upload` - Upload de dataset (PDF)
+  ```
+  Content-Type: multipart/form-data
+  
+  Request Body:
+  - file: [PDF File] (campo do tipo arquivo)
+
+  Response (200 OK):
+  {
+    "originalname": "exemplo.pdf",
+    "filename": "1679676892123-exemplo.pdf",
+    "size": 12345,
+    "mimetype": "application/pdf",
+    "url": "https://minio.gwan.com.br/datasets/1679676892123-exemplo.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&..."
+  }
+
+  Errors:
+  - 400 Bad Request: Se o arquivo não for PDF
+  - 400 Bad Request: Se nenhum arquivo for enviado
+  - 500 Internal Server Error: Se houver erro no upload para o MinIO
   ```
 
 ## 📝 Logs

@@ -7,6 +7,7 @@ import { HelloModule } from './modules/hello/hello.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
 import { EmailWorkerModule } from './workers/email/email.module';
+import { DatasetModule } from './modules/dataset/dataset.module';
 
 @Module({
   imports: [
@@ -28,8 +29,9 @@ import { EmailWorkerModule } from './workers/email/email.module';
     AuthModule,
     HealthModule,
     EmailWorkerModule,
+    DatasetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {} 
+export class AppModule { } 
