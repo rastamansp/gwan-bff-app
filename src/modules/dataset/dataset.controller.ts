@@ -1,16 +1,30 @@
-import { Controller, Post, UploadedFile, UseInterceptors, Get } from '@nestjs/common';
+import { Controller, Post, UploadedFile, UseInterceptors, Get, Req, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DatasetService } from './dataset.service';
 import { Express } from 'express';
 import { memoryStorage } from 'multer';
+import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/infrastructure/guards/jwt-auth.guard';
+
+interface AuthenticatedRequest extends Request {
+    user: {
+        id: string;
+        [key: string]: any;
+    };
+}
 
 @Controller('user/dataset')
+@UseGuards(JwtAuthGuard)
 export class DatasetController {
     constructor(private readonly datasetService: DatasetService) { }
 
     @Get('list')
-    async listFiles() {
-        return this.datasetService.listBucketContents();
+    async listFiles(@Req() req: AuthenticatedRequest) {
+        const userId = req.user.id;
+        if (!userId) {
+            throw new Error('Usuário não autenticado');
+        }
+        return this.datasetService.listBucketContents(userId);
     }
 
     @Post('upload')
@@ -28,10 +42,14 @@ export class DatasetController {
             }
         }),
     )
-    async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    async uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req: AuthenticatedRequest) {
         if (!file) {
             throw new Error('Nenhum arquivo foi enviado');
         }
-        return this.datasetService.handleFileUpload(file);
+        const userId = req.user.id;
+        if (!userId) {
+            throw new Error('Usuário não autenticado');
+        }
+        return this.datasetService.handleFileUpload(file, userId);
     }
 } 

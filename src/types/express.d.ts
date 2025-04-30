@@ -1,5 +1,14 @@
+import { Request } from 'express';
+
 declare global {
     namespace Express {
+        interface Request {
+            user?: {
+                id: string;
+                [key: string]: any;
+            };
+        }
+
         interface Multer {
             /** Name of the form field associated with this file. */
             File: {

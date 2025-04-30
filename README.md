@@ -197,22 +197,75 @@ src/
   
   Request Body:
   - file: [PDF File] (campo do tipo arquivo, máximo 5MB)
-
-  Response (200 OK):
-  {
-    "originalname": "exemplo.pdf",
-    "filename": "1679676892123-exemplo.pdf",
-    "size": 12345,
-    "mimetype": "application/pdf",
-    "url": "https://minio.gwan.com.br/datasets/1679676892123-exemplo.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&..."
-  }
-
-  Errors:
-  - 400 Bad Request: Se o arquivo não for PDF
-  - 400 Bad Request: Se o arquivo exceder 5MB
-  - 400 Bad Request: Se nenhum arquivo for enviado
-  - 500 Internal Server Error: Se houver erro no upload para o MinIO ou se o bucket não existir
   ```
+
+## 📁 Estrutura de Armazenamento
+
+### MinIO (Bucket Storage)
+Os arquivos são armazenados no MinIO em uma estrutura organizada por usuário:
+
+```
+datasets/
+  ├── {userId}/
+  │   ├── {timestamp}-{filename}.pdf
+  │   └── {timestamp}-{filename}.pdf
+  └── {outroUserId}/
+      └── {timestamp}-{filename}.pdf
+```
+
+Exemplo:
+```
+datasets/
+  ├── 681156721df613b75b7a833f/
+  │   ├── 1714567890123-documento1.pdf
+  │   └── 1714567890124-documento2.pdf
+  └── 681156721df613b75b7a833g/
+      └── 1714567890125-documento3.pdf
+```
+
+### MongoDB (Metadata Storage)
+Os metadados dos arquivos são armazenados na collection `bucketfiles` com a seguinte estrutura:
+
+```javascript
+{
+  _id: ObjectId,
+  userId: String,          // ID do usuário que fez o upload
+  originalName: String,    // Nome original do arquivo
+  fileName: String,        // Nome do arquivo no bucket (inclui userId/timestamp)
+  size: Number,           // Tamanho em bytes
+  mimeType: String,       // Tipo do arquivo (ex: application/pdf)
+  url: String,            // URL temporária para acesso
+  bucketName: String,     // Nome do bucket (datasets)
+  createdAt: Date,        // Data de criação
+  updatedAt: Date         // Data da última atualização
+}
+```
+
+### Queries Úteis MongoDB
+
+1. Listar todos os arquivos de um usuário:
+```javascript
+db.bucketfiles.find({ userId: "681156721df613b75b7a833f" })
+```
+
+2. Listar arquivos ordenados por data:
+```javascript
+db.bucketfiles.find().sort({ createdAt: -1 })
+```
+
+3. Total de arquivos por usuário:
+```javascript
+db.bucketfiles.aggregate([
+  { $group: { _id: "$userId", total: { $sum: 1 } } }
+])
+```
+
+4. Tamanho total dos arquivos por usuário:
+```javascript
+db.bucketfiles.aggregate([
+  { $group: { _id: "$userId", totalSize: { $sum: "$size" } } }
+])
+```
 
 ## 🗄️ Serviço de Arquivos (MinIO)
 
