@@ -17,6 +17,7 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const health_module_1 = require("./modules/health/health.module");
 const email_module_1 = require("./workers/email/email.module");
 const dataset_module_1 = require("./modules/dataset/dataset.module");
+const knowledge_module_1 = require("./modules/knowledge/knowledge.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -42,6 +43,7 @@ exports.AppModule = AppModule = __decorate([
             health_module_1.HealthModule,
             email_module_1.EmailWorkerModule,
             dataset_module_1.DatasetModule,
+            knowledge_module_1.KnowledgeModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

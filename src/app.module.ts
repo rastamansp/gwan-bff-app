@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
 import { EmailWorkerModule } from './workers/email/email.module';
 import { DatasetModule } from './modules/dataset/dataset.module';
+import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { DatasetModule } from './modules/dataset/dataset.module';
     HealthModule,
     EmailWorkerModule,
     DatasetModule,
+    KnowledgeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -21,6 +21,7 @@ const user_entity_1 = require("./domain/entities/user.entity");
 const notification_service_1 = require("./domain/services/notification.service");
 const rabbitmq_service_1 = require("./domain/services/rabbitmq.service");
 const jwt_strategy_1 = require("./infrastructure/strategies/jwt.strategy");
+const jwt_auth_guard_1 = require("./infrastructure/guards/jwt-auth.guard");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -44,12 +45,13 @@ exports.AuthModule = AuthModule = __decorate([
             notification_service_1.NotificationService,
             rabbitmq_service_1.RabbitMQService,
             jwt_strategy_1.JwtStrategy,
+            jwt_auth_guard_1.JwtAuthGuard,
             {
                 provide: 'IUserRepository',
                 useClass: user_repository_impl_1.UserRepositoryImpl,
             },
         ],
-        exports: [user_service_1.UserService, jwt_strategy_1.JwtStrategy],
+        exports: [user_service_1.UserService, jwt_strategy_1.JwtStrategy, jwt_auth_guard_1.JwtAuthGuard],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

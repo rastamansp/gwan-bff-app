@@ -382,4 +382,155 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 - NestJS Team
 - MongoDB Team
-- RabbitMQ Team 
+- RabbitMQ Team
+
+## Estrutura de Armazenamento de Arquivos
+
+O sistema utiliza uma combinação de MinIO para armazenamento de arquivos e MongoDB para metadados, proporcionando uma solução robusta e escalável.
+
+### Configuração do MinIO
+
+O sistema requer as seguintes variáveis de ambiente para configuração do MinIO:
+
+```env
+MINIO_ENDPOINT=localhost
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET_NAME=datasets
+```
+
+### Estrutura de Diretórios
+
+Os arquivos são organizados no MinIO seguindo a estrutura:
+```
+datasets/
+  └── {userId}/
+      └── {timestamp}-{filename}
+```
+
+### Modelos de Dados
+
+#### BucketFile (MongoDB)
+```typescript
+{
+    userId: string;          // ID do usuário proprietário
+    originalName: string;    // Nome original do arquivo
+    fileName: string;        // Nome do arquivo no MinIO
+    size: number;           // Tamanho em bytes
+    mimeType: string;       // Tipo MIME do arquivo
+    url: string;            // URL temporária de acesso
+    bucketName: string;     // Nome do bucket no MinIO
+}
+```
+
+#### KnowledgeBase (MongoDB)
+```typescript
+{
+    userId: string;          // ID do usuário proprietário
+    name: string;           // Nome da base de conhecimento
+    description: string;     // Descrição da base
+    fileId: string;         // ID do arquivo associado
+    status: string;         // Status: 'processing' | 'completed' | 'failed'
+    error?: string;         // Mensagem de erro (opcional)
+    metadata?: {            // Metadados do processamento
+        totalChunks?: number;
+        processedChunks?: number;
+        totalTokens?: number;
+    }
+}
+```
+
+### Funcionalidades Implementadas
+
+#### DatasetService
+
+1. **Upload de Arquivos**
+   ```typescript
+   handleFileUpload(file: Express.Multer.File, userId: string): Promise<BucketFile>
+   ```
+   - Faz upload do arquivo para o MinIO
+   - Gera URL temporária de acesso
+   - Salva metadados no MongoDB
+   - Organiza arquivos por usuário
+
+2. **Listagem de Arquivos**
+   ```typescript
+   listBucketContents(userId: string): Promise<BucketFile[]>
+   ```
+   - Lista todos os arquivos do usuário
+   - Atualiza URLs temporárias
+   - Retorna metadados completos
+
+3. **Deleção de Arquivos**
+   ```typescript
+   deleteFile(fileId: string, userId: string): Promise<void>
+   ```
+   - Remove arquivo do MinIO
+   - Remove metadados do MongoDB
+   - Verifica permissões do usuário
+
+4. **Geração de URLs**
+   ```typescript
+   getFileUrl(fileId: string, userId: string): Promise<string>
+   ```
+   - Gera URL temporária para acesso
+   - Valida permissões do usuário
+   - URLs expiram em 24 horas
+
+### Segurança
+
+- Autenticação via JWT
+- URLs temporárias com expiração
+- Validação de propriedade dos arquivos
+- Isolamento de dados por usuário
+
+### Boas Práticas
+
+1. **Organização de Arquivos**
+   - Estrutura hierárquica por usuário
+   - Nomes únicos com timestamp
+   - Metadados completos
+
+2. **Tratamento de Erros**
+   - Logs detalhados
+   - Mensagens de erro claras
+   - Rollback em caso de falha
+
+3. **Performance**
+   - URLs temporárias para acesso
+   - Metadados em MongoDB para consultas rápidas
+   - Processamento assíncrono
+
+### Exemplo de Uso
+
+```typescript
+// Upload de arquivo
+const file = await datasetService.handleFileUpload(uploadedFile, userId);
+
+// Listar arquivos
+const files = await datasetService.listBucketContents(userId);
+
+// Deletar arquivo
+await datasetService.deleteFile(fileId, userId);
+
+// Obter URL temporária
+const url = await datasetService.getFileUrl(fileId, userId);
+```
+
+### Monitoramento
+
+O sistema inclui logs detalhados para:
+- Uploads de arquivos
+- Geração de URLs
+- Deleção de arquivos
+- Erros e exceções
+
+### Próximos Passos
+
+1. Implementar sistema de cache
+2. Adicionar suporte a múltiplos buckets
+3. Implementar sistema de backup
+4. Adicionar suporte a compressão
+5. Implementar sistema de versionamento 

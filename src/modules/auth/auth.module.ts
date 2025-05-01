@@ -12,6 +12,7 @@ import { User, UserSchema } from './domain/entities/user.entity';
 import { NotificationService } from './domain/services/notification.service';
 import { RabbitMQService } from './domain/services/rabbitmq.service';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
+import { JwtAuthGuard } from './infrastructure/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -32,11 +33,12 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
     NotificationService,
     RabbitMQService,
     JwtStrategy,
+    JwtAuthGuard,
     {
       provide: 'IUserRepository',
       useClass: UserRepositoryImpl,
     },
   ],
-  exports: [UserService, JwtStrategy],
+  exports: [UserService, JwtStrategy, JwtAuthGuard],
 })
 export class AuthModule { } 
