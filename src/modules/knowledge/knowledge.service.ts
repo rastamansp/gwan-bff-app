@@ -5,12 +5,14 @@ import { KnowledgeBase } from './schemas/knowledge-base.schema';
 import { CreateKnowledgeBaseDto } from './dto/create-knowledge-base.dto';
 import { UpdateKnowledgeBaseDto } from './dto/update-knowledge-base.dto';
 import { DatasetService } from '@knowledge/infrastructure/services/dataset.service';
+import { RabbitMQService } from './infrastructure/services/rabbitmq.service';
 
 @Injectable()
 export class KnowledgeService {
     constructor(
         @InjectModel(KnowledgeBase.name) private knowledgeBaseModel: Model<KnowledgeBase>,
-        private readonly datasetService: DatasetService
+        private readonly datasetService: DatasetService,
+        private readonly rabbitMQService: RabbitMQService
     ) { }
 
     async createKnowledgeBase(
@@ -28,7 +30,16 @@ export class KnowledgeService {
         };
         console.log('createDto', createDto);
         const createdKnowledgeBase = new this.knowledgeBaseModel(createDto);
-        return createdKnowledgeBase.save();
+        const savedKnowledgeBase = await createdKnowledgeBase.save();
+
+        // Envia para a fila de processamento
+        await this.rabbitMQService.sendMessage({
+            knowledgeBaseId: savedKnowledgeBase._id,
+            fileId: savedKnowledgeBase.fileId,
+            userId: savedKnowledgeBase.userId
+        });
+
+        return savedKnowledgeBase;
     }
 
     async listUserKnowledgeBases(userId: string): Promise<KnowledgeBase[]> {
