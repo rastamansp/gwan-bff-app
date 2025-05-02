@@ -1,7 +1,8 @@
 FROM node:20-bullseye AS builder
 
-# Create app user first
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+# Create app user first (if not exists)
+RUN getent group appgroup || groupadd -r appgroup && \
+    getent passwd appuser || useradd -r -g appgroup appuser
 
 WORKDIR /app
 
@@ -34,8 +35,9 @@ RUN echo "=== Dist files ===" && \
 # Production stage
 FROM node:20-bullseye
 
-# Create app user
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+# Create app user (if not exists)
+RUN getent group appgroup || groupadd -r appgroup && \
+    getent passwd appuser || useradd -r -g appgroup appuser
 
 WORKDIR /app
 
