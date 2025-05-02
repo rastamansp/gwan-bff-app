@@ -1,15 +1,24 @@
 FROM node:20-bullseye AS builder
 
+# Create app user first
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+
 WORKDIR /app
 
+# Set proper permissions
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
 # Copy package files
-COPY package*.json ./
+COPY --chown=appuser:appgroup package*.json ./
 
 # Install all dependencies (including devDependencies)
 RUN npm install --legacy-peer-deps
 
 # Copy source code
-COPY . .
+COPY --chown=appuser:appgroup . .
 
 # Debug: List source files
 RUN echo "=== Source files ===" && \
@@ -25,25 +34,29 @@ RUN echo "=== Dist files ===" && \
 # Production stage
 FROM node:20-bullseye
 
+# Create app user
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+
 WORKDIR /app
 
+# Set proper permissions
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
 # Install production dependencies
-COPY package*.json ./
+COPY --chown=appuser:appgroup package*.json ./
 RUN npm install --only=production --legacy-peer-deps
 
 # Copy built application and necessary files
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
 
 # Debug: List final files
 RUN echo "=== Final files ===" && \
     ls -la /app/dist/modules/auth/infrastructure/strategies/
-
-# Create non-root user
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser && \
-    chown -R appuser:appgroup /app
-USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
