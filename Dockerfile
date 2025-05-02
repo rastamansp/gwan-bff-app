@@ -26,8 +26,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --only=production --legacy-peer-deps
 
-# Copy built application
+# Copy built application and necessary files
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
