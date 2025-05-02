@@ -1,11 +1,9 @@
 FROM node:20-bullseye AS builder
 
-# Create app user first (if not exists)
+# Create app user and set up directories with root
 RUN getent group appgroup || groupadd -r appgroup && \
-    getent passwd appuser || useradd -r -g appgroup appuser
-
-# Create and set permissions for home directory
-RUN mkdir -p /home/appuser && \
+    getent passwd appuser || useradd -r -g appgroup appuser && \
+    mkdir -p /home/appuser && \
     chown -R appuser:appgroup /home/appuser
 
 WORKDIR /app
@@ -43,12 +41,10 @@ RUN echo "=== Checking build output (strategies) ===" && \
 # Production stage
 FROM node:20-bullseye
 
-# Create app user (if not exists)
+# Create app user and set up directories with root
 RUN getent group appgroup || groupadd -r appgroup && \
-    getent passwd appuser || useradd -r -g appgroup appuser
-
-# Create and set permissions for home directory
-RUN mkdir -p /home/appuser && \
+    getent passwd appuser || useradd -r -g appgroup appuser && \
+    mkdir -p /home/appuser && \
     chown -R appuser:appgroup /home/appuser
 
 WORKDIR /app
