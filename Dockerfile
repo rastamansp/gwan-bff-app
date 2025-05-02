@@ -1,17 +1,33 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache wget
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm install --legacy-peer-deps
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
-RUN apk add --no-cache wget
+# Install production dependencies
+COPY package*.json ./
+RUN npm install --only=production --legacy-peer-deps
 
-# Copy application files
-COPY . .
-
-# Install dependencies and build
-RUN npm install --legacy-peer-deps && \
-    npm run build && \
-    npm prune --production --legacy-peer-deps
+# Copy built application
+COPY --from=builder /app/dist ./dist
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
