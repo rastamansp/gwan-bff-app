@@ -37,10 +37,13 @@ RUN echo "=== Source files (strategies) ===" && \
 RUN npm run build --verbose
 
 # Verify the build output
-RUN echo "=== Checking build output (strategies) ===" && \
+RUN echo "=== Checking build output ===" && \
+    find dist -type f && \
+    echo "=== Checking specific files ===" && \
     ls -la dist/modules/auth/infrastructure/strategies/ && \
-    echo "=== Checking build output (guards) ===" && \
-    ls -la dist/modules/auth/infrastructure/guards/
+    ls -la dist/modules/auth/infrastructure/guards/ && \
+    echo "=== Checking guard file content ===" && \
+    cat dist/modules/auth/infrastructure/guards/jwt-auth.guard.js || echo "Guard file not found!"
 
 # Production stage
 FROM node:20-bullseye
@@ -72,10 +75,13 @@ COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 
 # Verify the final files
-RUN echo "=== Verifying final files (strategies) ===" && \
+RUN echo "=== Verifying final files ===" && \
+    find dist -type f && \
+    echo "=== Checking specific files ===" && \
     ls -la dist/modules/auth/infrastructure/strategies/ && \
-    echo "=== Verifying final files (guards) ===" && \
-    ls -la dist/modules/auth/infrastructure/guards/
+    ls -la dist/modules/auth/infrastructure/guards/ && \
+    echo "=== Checking guard file content ===" && \
+    cat dist/modules/auth/infrastructure/guards/jwt-auth.guard.js || echo "Guard file not found!"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
