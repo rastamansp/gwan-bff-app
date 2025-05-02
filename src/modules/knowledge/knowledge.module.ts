@@ -8,10 +8,6 @@ import {
 } from "./schemas/knowledge-base.schema";
 import { AuthModule } from "../auth/auth.module";
 import { DatasetService } from "./infrastructure/services/dataset.service";
-import {
-  BucketFile,
-  BucketFileSchema,
-} from "./domain/entities/bucket-file.entity";
 import { RabbitMQService } from "./infrastructure/services/rabbitmq.service";
 import { DatasetModule } from '../dataset/dataset.module';
 import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
@@ -20,7 +16,6 @@ import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
   imports: [
     MongooseModule.forFeature([
       { name: KnowledgeBase.name, schema: KnowledgeBaseSchema },
-      { name: BucketFile.name, schema: BucketFileSchema },
     ]),
     AuthModule,
     DatasetModule,
