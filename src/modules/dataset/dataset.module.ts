@@ -27,5 +27,15 @@ import { BucketFileRepositoryImpl } from "./infrastructure/repositories/bucket-f
       useClass: BucketFileRepositoryImpl,
     },
   ],
+  exports: [
+    DatasetService,
+    MongooseModule.forFeature([
+      { name: BucketFile.name, schema: BucketFileSchema },
+    ]),
+    {
+      provide: "IBucketFileRepository",
+      useClass: BucketFileRepositoryImpl,
+    },
+  ],
 })
-export class DatasetModule {}
+export class DatasetModule { }

@@ -1,9 +1,8 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, Inject } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Minio from "minio";
 import { BucketFile } from "../../../dataset/domain/entities/bucket-file.entity";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { IBucketFileRepository } from "../../../dataset/domain/repositories/bucket-file.repository";
 import { Multer } from "multer";
 
 @Injectable()
@@ -14,7 +13,8 @@ export class DatasetService {
 
   constructor(
     private readonly configService: ConfigService,
-    @InjectModel(BucketFile.name) private bucketFileModel: Model<BucketFile>,
+    @Inject("IBucketFileRepository")
+    private readonly bucketFileRepository: IBucketFileRepository,
   ) {
     this.bucketName =
       this.configService.get<string>("MINIO_BUCKET_NAME") || "datasets";
@@ -54,7 +54,7 @@ export class DatasetService {
       );
 
       // Salvar metadados no MongoDB
-      const bucketFile = new this.bucketFileModel({
+      const bucketFile = await this.bucketFileRepository.create({
         userId,
         originalName: file.originalname,
         fileName: objectName,
@@ -64,7 +64,6 @@ export class DatasetService {
         bucketName: this.bucketName,
       });
 
-      await bucketFile.save();
       return bucketFile;
     } catch (error) {
       this.logger.error(
@@ -78,7 +77,7 @@ export class DatasetService {
   async listBucketContents(userId: string): Promise<BucketFile[]> {
     try {
       // Buscar arquivos do usuário no MongoDB
-      const files = await this.bucketFileModel.find({ userId }).exec();
+      const files = await this.bucketFileRepository.findByUserId(userId);
 
       // Atualizar URLs temporárias
       for (const file of files) {
@@ -108,8 +107,8 @@ export class DatasetService {
 
   async deleteFile(fileId: string, userId: string): Promise<void> {
     try {
-      const file = await this.bucketFileModel.findOne({ _id: fileId, userId });
-      if (!file) {
+      const file = await this.bucketFileRepository.findById(fileId);
+      if (!file || file.userId !== userId) {
         throw new Error("Arquivo não encontrado");
       }
 
@@ -117,7 +116,7 @@ export class DatasetService {
       await this.minioClient.removeObject(this.bucketName, file.fileName);
 
       // Deletar do MongoDB
-      await this.bucketFileModel.deleteOne({ _id: fileId });
+      await this.bucketFileRepository.delete(fileId);
     } catch (error) {
       this.logger.error(
         `Erro ao deletar arquivo: ${error.message}`,
@@ -129,8 +128,8 @@ export class DatasetService {
 
   async getFileUrl(fileId: string, userId: string): Promise<string> {
     try {
-      const file = await this.bucketFileModel.findOne({ _id: fileId, userId });
-      if (!file) {
+      const file = await this.bucketFileRepository.findById(fileId);
+      if (!file || file.userId !== userId) {
         throw new Error("Arquivo não encontrado");
       }
 
