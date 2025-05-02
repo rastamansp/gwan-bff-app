@@ -14,8 +14,14 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
+# Debug: List source files
+RUN ls -la src/modules/auth/infrastructure/strategies/
+
 # Build the application
 RUN npm run build
+
+# Debug: List dist files
+RUN ls -la dist/modules/auth/infrastructure/strategies/
 
 # Production stage
 FROM node:20-alpine
@@ -30,6 +36,9 @@ RUN npm install --only=production --legacy-peer-deps
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
+
+# Debug: List final files
+RUN ls -la /app/dist/modules/auth/infrastructure/strategies/
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \

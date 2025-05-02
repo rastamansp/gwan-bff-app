@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   api:
     build:
-      context: https://github.com/rastamansp/gwan-bff-app.git#main # Usa o repositório git como contexto
+      #context: https://github.com/rastamansp/gwan-bff-app.git#main # Usa o repositório git como contexto
+      context: .
       dockerfile: Dockerfile
     container_name: gwan_bff_api
     restart: unless-stopped

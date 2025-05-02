@@ -41,4 +41,4 @@ import { JwtAuthGuard } from "./infrastructure/guards/jwt-auth.guard";
   ],
   exports: [UserService, JwtStrategy, JwtAuthGuard],
 })
-export class AuthModule {}
+export class AuthModule { }
