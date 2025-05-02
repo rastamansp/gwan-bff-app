@@ -2,9 +2,7 @@ FROM node:20-bullseye AS builder
 
 # Create app user and set up directories with root
 RUN getent group appgroup || groupadd -r appgroup && \
-    getent passwd appuser || useradd -r -g appgroup appuser && \
-    mkdir -p /home/appuser && \
-    chown -R appuser:appgroup /home/appuser
+    getent passwd appuser || useradd -m -r -g appgroup appuser
 
 WORKDIR /app
 
@@ -43,9 +41,7 @@ FROM node:20-bullseye
 
 # Create app user and set up directories with root
 RUN getent group appgroup || groupadd -r appgroup && \
-    getent passwd appuser || useradd -r -g appgroup appuser && \
-    mkdir -p /home/appuser && \
-    chown -R appuser:appgroup /home/appuser
+    getent passwd appuser || useradd -m -r -g appgroup appuser
 
 WORKDIR /app
 
