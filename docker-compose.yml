@@ -4,6 +4,7 @@ services:
       #context: https://github.com/rastamansp/gwan-bff-app.git#main # Usa o repositório git como contexto
       context: .
       dockerfile: Dockerfile
+    image: node:20-bullseye
     container_name: gwan_bff_api
     restart: unless-stopped
     ports:
