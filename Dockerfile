@@ -34,7 +34,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
 # Create non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser && \
     chown -R appuser:appgroup /app
 USER appuser
 
