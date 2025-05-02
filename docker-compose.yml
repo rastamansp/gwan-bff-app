@@ -36,6 +36,14 @@ services:
       - RABBITMQ_URL=amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br:5672
       - RABBITMQ_QUEUE=notifications
 
+      # MINIO Configuration
+      - MINIO_ENDPOINT=minio.gwan.com.br
+      - MINIO_BUCKET=gwan
+      - MINIO_PORT=443
+      - MINIO_USE_SSL=true
+      - MINIO_ACCESS_KEY=GBto9hcKkj47L0lRYq61
+      - MINIO_SECRET_KEY=igBJzMdF7yaWznpXEKNpwRACHDQXrSwxFjZJaE1t
+
       # CORS Configuration
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
     healthcheck:

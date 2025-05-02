@@ -10,13 +10,27 @@ import { Observable } from "rxjs";
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
   private readonly logger = new Logger(JwtAuthGuard.name);
+  private readonly publicRoutes = [
+    '/api/auth/login',
+    '/api/auth/verify-login',
+    '/api/auth/register',
+    '/api/auth/verify'
+  ];
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
+    const path = request.path;
+
+    // Verifica se a rota é pública
+    if (this.publicRoutes.includes(path)) {
+      this.logger.debug(`[Auth] Rota pública acessada: ${request.method} ${path}`);
+      return true;
+    }
+
     this.logger.debug(
-      `[Auth] Verificando autenticação para rota: ${request.method} ${request.url}`,
+      `[Auth] Verificando autenticação para rota: ${request.method} ${path}`,
     );
 
     const authHeader = request.headers.authorization;
