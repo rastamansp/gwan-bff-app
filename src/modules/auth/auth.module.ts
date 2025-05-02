@@ -11,7 +11,7 @@ import { UserRepositoryImpl } from "./infrastructure/repositories/user.repositor
 import { User, UserSchema } from "./domain/entities/user.entity";
 import { NotificationService } from "./domain/services/notification.service";
 import { RabbitMQService } from "./domain/services/rabbitmq.service";
-import JwtStrategy from "./infrastructure/strategies/jwt.strategy";
+import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
 import { JwtAuthGuard } from "./infrastructure/guards/jwt-auth.guard";
 
 @Module({
