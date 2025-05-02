@@ -2,15 +2,21 @@ FROM node:20-bullseye AS builder
 
 # Create app user and set up directories with root
 RUN getent group appgroup || groupadd -r appgroup && \
-    getent passwd appuser || useradd -m -r -g appgroup appuser
+    getent passwd appuser || useradd -r -g appgroup appuser
 
 WORKDIR /app
 
-# Set proper permissions
-RUN chown -R appuser:appgroup /app
+# Create npm cache and log directories
+RUN mkdir -p /app/.npm-cache /app/.npm-logs && \
+    chown -R appuser:appgroup /app
 
 # Switch to non-root user
 USER appuser
+
+# Set npm to use local directories
+ENV NPM_CONFIG_CACHE=/app/.npm-cache
+ENV NPM_CONFIG_LOGS=/app/.npm-logs
+ENV NPM_CONFIG_PREFIX=/app/.npm-global
 
 # Copy package files
 COPY --chown=appuser:appgroup package*.json ./
@@ -41,15 +47,21 @@ FROM node:20-bullseye
 
 # Create app user and set up directories with root
 RUN getent group appgroup || groupadd -r appgroup && \
-    getent passwd appuser || useradd -m -r -g appgroup appuser
+    getent passwd appuser || useradd -r -g appgroup appuser
 
 WORKDIR /app
 
-# Set proper permissions
-RUN chown -R appuser:appgroup /app
+# Create npm cache and log directories
+RUN mkdir -p /app/.npm-cache /app/.npm-logs && \
+    chown -R appuser:appgroup /app
 
 # Switch to non-root user
 USER appuser
+
+# Set npm to use local directories
+ENV NPM_CONFIG_CACHE=/app/.npm-cache
+ENV NPM_CONFIG_LOGS=/app/.npm-logs
+ENV NPM_CONFIG_PREFIX=/app/.npm-global
 
 # Copy built application and necessary files
 COPY --chown=appuser:appgroup package*.json ./
