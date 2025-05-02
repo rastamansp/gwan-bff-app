@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { Hello } from '../entities/hello.entity';
-import { HelloService } from '../services/hello.service';
-import { BaseUseCase } from '../../../../core/domain/use-cases/base.use-case';
+import { Injectable } from "@nestjs/common";
+import { Hello } from "../entities/hello.entity";
+import { HelloService } from "../services/hello.service";
+import { BaseUseCase } from "../../../../core/domain/use-cases/base.use-case";
 
 @Injectable()
 export class GetHelloUseCase extends BaseUseCase<Hello> {
@@ -12,4 +12,4 @@ export class GetHelloUseCase extends BaseUseCase<Hello> {
   async execute(): Promise<string> {
     return this.helloService.getHelloMessage();
   }
-} 
+}

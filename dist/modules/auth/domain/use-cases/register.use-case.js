@@ -27,7 +27,7 @@ let RegisterUseCase = RegisterUseCase_1 = class RegisterUseCase extends base_use
         this.logger.debug(`[Register] Dados de registro recebidos: ${JSON.stringify({
             name: data.name,
             email: data.email,
-            whatsapp: data.whatsapp
+            whatsapp: data.whatsapp,
         })}`);
         try {
             this.logger.debug(`[Register] Verificando se email já está em uso: ${data.email}`);
@@ -35,11 +35,11 @@ let RegisterUseCase = RegisterUseCase_1 = class RegisterUseCase extends base_use
             if (existingUser) {
                 this.logger.warn(`[Register] Tentativa de registro com email já existente: ${data.email}`);
                 throw new common_1.ConflictException({
-                    message: 'Email já está em uso',
-                    code: 'EMAIL_ALREADY_EXISTS',
+                    message: "Email já está em uso",
+                    code: "EMAIL_ALREADY_EXISTS",
                     details: {
-                        email: data.email
-                    }
+                        email: data.email,
+                    },
                 });
             }
             this.logger.debug(`[Register] Email disponível para uso: ${data.email}`);
@@ -48,11 +48,11 @@ let RegisterUseCase = RegisterUseCase_1 = class RegisterUseCase extends base_use
             if (existingWhatsapp) {
                 this.logger.warn(`[Register] Tentativa de registro com WhatsApp já existente: ${data.whatsapp}`);
                 throw new common_1.ConflictException({
-                    message: 'WhatsApp já está em uso',
-                    code: 'WHATSAPP_ALREADY_EXISTS',
+                    message: "WhatsApp já está em uso",
+                    code: "WHATSAPP_ALREADY_EXISTS",
                     details: {
-                        whatsapp: data.whatsapp
-                    }
+                        whatsapp: data.whatsapp,
+                    },
                 });
             }
             this.logger.debug(`[Register] WhatsApp disponível para uso: ${data.whatsapp}`);
@@ -71,7 +71,7 @@ let RegisterUseCase = RegisterUseCase_1 = class RegisterUseCase extends base_use
             this.logger.debug(`[Register] Código de verificação gerado e salvo. Expira em: ${expiresAt.toISOString()}`);
             this.logger.log(`[Register] Iniciando envio de código por email: ${user.email}`);
             try {
-                await this.notificationService.sendEmail(user.email, 'Código de Verificação - GWAN', `Olá ${user.name},\n\nSeu código de verificação é: ${activationCode}\n\nEste código é válido por 10 minutos.`);
+                await this.notificationService.sendEmail(user.email, "Código de Verificação - GWAN", `Olá ${user.name},\n\nSeu código de verificação é: ${activationCode}\n\nEste código é válido por 10 minutos.`);
                 this.logger.log(`[Register] Email de verificação enviado com sucesso: ${user.email}`);
             }
             catch (error) {

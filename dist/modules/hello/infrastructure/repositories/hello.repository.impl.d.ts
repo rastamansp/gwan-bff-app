@@ -1,5 +1,5 @@
-import { Hello } from '../../domain/entities/hello.entity';
-import { IHelloRepository } from '../../domain/repositories/hello.repository';
+import { Hello } from "../../domain/entities/hello.entity";
+import { IHelloRepository } from "../../domain/repositories/hello.repository";
 export declare class HelloRepositoryImpl implements IHelloRepository {
     findById(id: string): Promise<Hello | null>;
     findAll(): Promise<Hello[]>;

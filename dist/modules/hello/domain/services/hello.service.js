@@ -22,7 +22,7 @@ let HelloService = class HelloService extends base_service_1.BaseService {
         this.repository = repository;
     }
     async getHelloMessage() {
-        return 'Hello World!';
+        return "Hello World!";
     }
 };
 exports.HelloService = HelloService;

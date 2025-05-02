@@ -1,24 +1,30 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateKnowledgeBaseDto {
-    @IsString()
-    @IsNotEmpty()
-    userId: string;
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 
-    @IsString()
-    @IsNotEmpty()
-    fileId: string;
+  @ApiProperty({
+    description: "Nome da base de conhecimento",
+    example: "Base de Conhecimento de Marketing",
+  })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsString()
-    @IsNotEmpty()
-    name: string;
+  @ApiProperty({
+    description: "Descrição da base de conhecimento",
+    example:
+      "Base de conhecimento contendo informações sobre estratégias de marketing digital",
+  })
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-    @IsString()
-    @IsOptional()
-    description?: string;
-
-    @IsString()
-    @IsNotEmpty()
-    @IsEnum(['processing', 'completed', 'failed'])
-    status: 'processing' | 'completed' | 'failed';
-} 
+  @IsString()
+  @IsNotEmpty()
+  @IsEnum(["new", "processing", "completed", "failed"])
+  status: "new" | "processing" | "completed" | "failed";
+}

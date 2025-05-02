@@ -1,5 +1,5 @@
-import { BaseEntity } from '../entities/base.entity';
-import { IBaseRepository } from '../repositories/base.repository';
+import { BaseEntity } from "../entities/base.entity";
+import { IBaseRepository } from "../repositories/base.repository";
 
 export abstract class BaseService<T extends BaseEntity> {
   constructor(protected readonly repository: IBaseRepository<T>) {}
@@ -23,4 +23,4 @@ export abstract class BaseService<T extends BaseEntity> {
   async delete(id: string): Promise<void> {
     return this.repository.delete(id);
   }
-} 
+}

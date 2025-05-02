@@ -1,6 +1,6 @@
-import { User } from '../entities/user.entity';
-import { IUserRepository } from '../repositories/user.repository';
-import { BaseService } from '../../../../core/domain/services/base.service';
+import { User } from "../entities/user.entity";
+import { IUserRepository } from "../repositories/user.repository";
+import { BaseService } from "../../../../core/domain/services/base.service";
 export declare class UserService extends BaseService<User> {
     protected readonly repository: IUserRepository;
     constructor(repository: IUserRepository);

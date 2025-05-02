@@ -30,21 +30,21 @@ let LoginUseCase = LoginUseCase_1 = class LoginUseCase extends base_use_case_1.B
             if (!user) {
                 this.logger.warn(`[Login] Usuário não encontrado: ${data.email}`);
                 throw new common_1.NotFoundException({
-                    message: 'Usuário não encontrado',
-                    code: 'USER_NOT_FOUND',
+                    message: "Usuário não encontrado",
+                    code: "USER_NOT_FOUND",
                     details: {
-                        email: data.email
-                    }
+                        email: data.email,
+                    },
                 });
             }
             if (!user.isVerified) {
                 this.logger.warn(`[Login] Tentativa de login com usuário não verificado: ${data.email}`);
                 throw new common_1.BadRequestException({
-                    message: 'Usuário não está verificado',
-                    code: 'USER_NOT_VERIFIED',
+                    message: "Usuário não está verificado",
+                    code: "USER_NOT_VERIFIED",
                     details: {
-                        email: data.email
-                    }
+                        email: data.email,
+                    },
                 });
             }
             const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -55,17 +55,17 @@ let LoginUseCase = LoginUseCase_1 = class LoginUseCase extends base_use_case_1.B
             this.logger.debug(`[Login] Código de login gerado e salvo. Expira em: ${expiresAt.toISOString()}`);
             this.logger.log(`[Login] Iniciando envio de código por email: ${user.email}`);
             try {
-                await this.notificationService.sendEmail(user.email, 'Código de Login - GWAN', `Olá ${user.name},\n\nSeu código de login é: ${loginCode}\n\nEste código é válido por 10 minutos.\n\nSe você não solicitou este código, ignore este email.`);
+                await this.notificationService.sendEmail(user.email, "Código de Login - GWAN", `Olá ${user.name},\n\nSeu código de login é: ${loginCode}\n\nEste código é válido por 10 minutos.\n\nSe você não solicitou este código, ignore este email.`);
                 this.logger.log(`[Login] Email com código de login enviado com sucesso: ${user.email}`);
             }
             catch (error) {
                 this.logger.error(`[Login] Erro ao enviar email com código de login: ${error.message}`, error.stack);
                 throw new common_1.BadRequestException({
-                    message: 'Erro ao enviar código de login por email',
-                    code: 'EMAIL_SEND_ERROR',
+                    message: "Erro ao enviar código de login por email",
+                    code: "EMAIL_SEND_ERROR",
                     details: {
-                        email: user.email
-                    }
+                        email: user.email,
+                    },
                 });
             }
             this.logger.log(`[Login] Iniciando envio de código por WhatsApp: ${user.whatsapp}`);

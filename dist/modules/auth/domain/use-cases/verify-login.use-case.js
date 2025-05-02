@@ -24,51 +24,51 @@ let VerifyLoginUseCase = class VerifyLoginUseCase extends base_use_case_1.BaseUs
         const user = await this.userService.findByEmail(data.email);
         if (!user) {
             throw new common_1.NotFoundException({
-                message: 'Usuário não encontrado',
-                code: 'USER_NOT_FOUND',
+                message: "Usuário não encontrado",
+                code: "USER_NOT_FOUND",
                 details: {
-                    email: data.email
-                }
+                    email: data.email,
+                },
             });
         }
         if (!user.loginCode || !user.loginCodeExpiresAt) {
             throw new common_1.BadRequestException({
-                message: 'Código de login não encontrado',
-                code: 'LOGIN_CODE_NOT_FOUND',
+                message: "Código de login não encontrado",
+                code: "LOGIN_CODE_NOT_FOUND",
                 details: {
-                    email: data.email
-                }
+                    email: data.email,
+                },
             });
         }
         if (user.loginCode !== data.code) {
             throw new common_1.BadRequestException({
-                message: 'Código de login inválido',
-                code: 'INVALID_LOGIN_CODE',
+                message: "Código de login inválido",
+                code: "INVALID_LOGIN_CODE",
                 details: {
                     email: data.email,
-                    providedCode: data.code
-                }
+                    providedCode: data.code,
+                },
             });
         }
         if (user.loginCodeExpiresAt < new Date()) {
             throw new common_1.BadRequestException({
-                message: 'Código de login expirado',
-                code: 'LOGIN_CODE_EXPIRED',
+                message: "Código de login expirado",
+                code: "LOGIN_CODE_EXPIRED",
                 details: {
                     email: data.email,
-                    expiresAt: user.loginCodeExpiresAt
-                }
+                    expiresAt: user.loginCodeExpiresAt,
+                },
             });
         }
         const updatedUser = await this.userService.updateLastLogin(user.id);
         const token = this.jwtService.sign({
             sub: updatedUser.id,
             email: updatedUser.email,
-            name: updatedUser.name
+            name: updatedUser.name,
         });
         return {
             user: updatedUser,
-            token
+            token,
         };
     }
 };

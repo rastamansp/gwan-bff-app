@@ -1,4 +1,4 @@
-import { RabbitMQService } from './rabbitmq.service';
+import { RabbitMQService } from "./rabbitmq.service";
 export interface INotificationService {
     sendEmail(to: string, subject: string, content: string): Promise<void>;
     sendWhatsApp(to: string, message: string): Promise<void>;

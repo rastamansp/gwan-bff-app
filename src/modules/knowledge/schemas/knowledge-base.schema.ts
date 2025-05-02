@@ -1,32 +1,29 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
 
 @Schema({ timestamps: true })
 export class KnowledgeBase extends Document {
-    @Prop({ required: true })
-    userId: string;
+  @Prop({ required: true })
+  userId: string;
 
-    @Prop({ required: true })
-    fileId: string;
+  @Prop({ required: true })
+  name: string;
 
-    @Prop({ required: true })
-    name: string;
+  @Prop()
+  description: string;
 
-    @Prop()
-    description: string;
+  @Prop({ default: "new" })
+  status: "new" | "processing" | "completed" | "failed";
 
-    @Prop({ default: 'processing' })
-    status: 'processing' | 'completed' | 'failed';
+  @Prop()
+  error?: string;
 
-    @Prop()
-    error?: string;
-
-    @Prop({ type: Object })
-    metadata?: {
-        totalChunks?: number;
-        processedChunks?: number;
-        totalTokens?: number;
-    };
+  @Prop({ type: Object })
+  metadata?: {
+    totalChunks?: number;
+    processedChunks?: number;
+    totalTokens?: number;
+  };
 }
 
-export const KnowledgeBaseSchema = SchemaFactory.createForClass(KnowledgeBase); 
+export const KnowledgeBaseSchema = SchemaFactory.createForClass(KnowledgeBase);

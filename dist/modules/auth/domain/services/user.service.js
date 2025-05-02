@@ -42,7 +42,7 @@ let UserService = class UserService extends base_service_1.BaseService {
 exports.UserService = UserService;
 exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)('IUserRepository')),
+    __param(0, (0, common_1.Inject)("IUserRepository")),
     __metadata("design:paramtypes", [Object])
 ], UserService);
 //# sourceMappingURL=user.service.js.map

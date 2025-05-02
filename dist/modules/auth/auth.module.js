@@ -30,8 +30,8 @@ exports.AuthModule = AuthModule = __decorate([
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: user_entity_1.User.name, schema: user_entity_1.UserSchema }]),
             jwt_1.JwtModule.register({
-                secret: process.env.JWT_SECRET || 'gwan-secret-key-production-2024',
-                signOptions: { expiresIn: process.env.JWT_EXPIRATION || '1d' },
+                secret: process.env.JWT_SECRET || "gwan-secret-key-production-2024",
+                signOptions: { expiresIn: process.env.JWT_EXPIRATION || "1d" },
             }),
         ],
         controllers: [auth_controller_1.AuthController],
@@ -47,7 +47,7 @@ exports.AuthModule = AuthModule = __decorate([
             jwt_strategy_1.JwtStrategy,
             jwt_auth_guard_1.JwtAuthGuard,
             {
-                provide: 'IUserRepository',
+                provide: "IUserRepository",
                 useClass: user_repository_impl_1.UserRepositoryImpl,
             },
         ],

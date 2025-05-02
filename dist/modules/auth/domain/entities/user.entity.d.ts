@@ -1,5 +1,5 @@
-import { Document } from 'mongoose';
-import { BaseEntity } from '../../../../core/domain/entities/base.entity';
+import { Document } from "mongoose";
+import { BaseEntity } from "../../../../core/domain/entities/base.entity";
 export declare class User extends BaseEntity {
     name: string;
     email: string;

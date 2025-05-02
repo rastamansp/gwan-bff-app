@@ -1,7 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
-import { GetHelloUseCase } from '../../domain/use-cases/get-hello.use-case';
+import { Controller, Get } from "@nestjs/common";
+import { GetHelloUseCase } from "../../domain/use-cases/get-hello.use-case";
 
-@Controller('hello')
+@Controller("hello")
 export class HelloController {
   constructor(private readonly getHelloUseCase: GetHelloUseCase) {}
 
@@ -9,4 +9,4 @@ export class HelloController {
   async getHello(): Promise<string> {
     return this.getHelloUseCase.execute();
   }
-} 
+}

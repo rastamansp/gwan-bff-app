@@ -28,7 +28,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], HelloController.prototype, "getHello", null);
 exports.HelloController = HelloController = __decorate([
-    (0, common_1.Controller)('hello'),
+    (0, common_1.Controller)("hello"),
     __metadata("design:paramtypes", [get_hello_use_case_1.GetHelloUseCase])
 ], HelloController);
 //# sourceMappingURL=hello.controller.js.map

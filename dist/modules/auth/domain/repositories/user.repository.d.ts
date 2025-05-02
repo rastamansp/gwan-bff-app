@@ -1,5 +1,5 @@
-import { User } from '../entities/user.entity';
-import { IBaseRepository } from '../../../../core/domain/repositories/base.repository';
+import { User } from "../entities/user.entity";
+import { IBaseRepository } from "../../../../core/domain/repositories/base.repository";
 export interface IUserRepository extends IBaseRepository<User> {
     findByEmail(email: string): Promise<User | null>;
     findByWhatsapp(whatsapp: string): Promise<User | null>;

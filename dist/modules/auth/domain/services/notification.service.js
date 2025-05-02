@@ -25,10 +25,10 @@ let NotificationService = NotificationService_1 = class NotificationService {
                 to,
                 subject,
                 content,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
             this.logger.log(`Enviando mensagem para fila email_notifications: ${JSON.stringify(emailData)}`);
-            await this.rabbitMQService.sendToQueue('email_notifications', emailData);
+            await this.rabbitMQService.sendToQueue("email_notifications", emailData);
             this.logger.log(`Mensagem enviada com sucesso para fila email_notifications`);
         }
         catch (error) {
@@ -42,10 +42,10 @@ let NotificationService = NotificationService_1 = class NotificationService {
             const whatsappData = {
                 to,
                 message,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
             this.logger.log(`Enviando mensagem para fila whatsapp_notifications: ${JSON.stringify(whatsappData)}`);
-            await this.rabbitMQService.sendToQueue('whatsapp_notifications', whatsappData);
+            await this.rabbitMQService.sendToQueue("whatsapp_notifications", whatsappData);
             this.logger.log(`Mensagem enviada com sucesso para fila whatsapp_notifications`);
         }
         catch (error) {

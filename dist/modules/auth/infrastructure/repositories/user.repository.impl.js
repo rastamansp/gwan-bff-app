@@ -50,28 +50,36 @@ let UserRepositoryImpl = class UserRepositoryImpl {
         return this.userModel.findOne({ whatsapp }).exec();
     }
     async updateActivationCode(id, code, expiresAt) {
-        return this.userModel.findByIdAndUpdate(id, { activationCode: code, activationCodeExpiresAt: expiresAt }, { new: true }).exec();
+        return this.userModel
+            .findByIdAndUpdate(id, { activationCode: code, activationCodeExpiresAt: expiresAt }, { new: true })
+            .exec();
     }
     async updateLoginCode(id, code, expiresAt) {
-        return this.userModel.findByIdAndUpdate(id, { loginCode: code, loginCodeExpiresAt: expiresAt }, { new: true }).exec();
+        return this.userModel
+            .findByIdAndUpdate(id, { loginCode: code, loginCodeExpiresAt: expiresAt }, { new: true })
+            .exec();
     }
     async verifyUser(id) {
-        return this.userModel.findByIdAndUpdate(id, {
+        return this.userModel
+            .findByIdAndUpdate(id, {
             isVerified: true,
             activationCode: null,
             activationCodeExpiresAt: null,
             loginCode: null,
-            loginCodeExpiresAt: null
-        }, { new: true }).exec();
+            loginCodeExpiresAt: null,
+        }, { new: true })
+            .exec();
     }
     async updateLastLogin(id) {
-        return this.userModel.findByIdAndUpdate(id, { lastLoginAt: new Date() }, { new: true }).exec();
+        return this.userModel
+            .findByIdAndUpdate(id, { lastLoginAt: new Date() }, { new: true })
+            .exec();
     }
 };
 exports.UserRepositoryImpl = UserRepositoryImpl;
 exports.UserRepositoryImpl = UserRepositoryImpl = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)('User')),
+    __param(0, (0, mongoose_1.InjectModel)("User")),
     __metadata("design:paramtypes", [mongoose_2.Model])
 ], UserRepositoryImpl);
 //# sourceMappingURL=user.repository.impl.js.map

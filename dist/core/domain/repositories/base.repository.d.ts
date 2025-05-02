@@ -1,4 +1,4 @@
-import { BaseEntity } from '../entities/base.entity';
+import { BaseEntity } from "../entities/base.entity";
 export interface IBaseRepository<T extends BaseEntity> {
     findById(id: string): Promise<T | null>;
     findAll(): Promise<T[]>;

@@ -21,21 +21,21 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
         this.logger = new common_1.Logger(EmailWorker_1.name);
         this.maxRetries = 3;
         this.retryDelay = 5000;
-        this.queueName = 'email_notifications';
-        this.deadLetterExchange = 'email_notifications_dlx';
-        this.deadLetterQueue = 'email_notifications_dlq';
+        this.queueName = "email_notifications";
+        this.deadLetterExchange = "email_notifications_dlx";
+        this.deadLetterQueue = "email_notifications_dlq";
         this.transporter = nodemailer.createTransport({
-            host: this.configService.get('SMTP_HOST'),
-            port: this.configService.get('SMTP_PORT'),
+            host: this.configService.get("SMTP_HOST"),
+            port: this.configService.get("SMTP_PORT"),
             secure: false,
             requireTLS: true,
             tls: {
-                ciphers: 'SSLv3',
-                rejectUnauthorized: false
+                ciphers: "SSLv3",
+                rejectUnauthorized: false,
             },
             auth: {
-                user: this.configService.get('SMTP_USER'),
-                pass: this.configService.get('SMTP_PASSWORD'),
+                user: this.configService.get("SMTP_USER"),
+                pass: this.configService.get("SMTP_PASSWORD"),
             },
             pool: true,
             maxConnections: 5,
@@ -43,7 +43,7 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
             rateDelta: 1000,
             rateLimit: 5,
         });
-        this.logger.log('Email worker initialized with production settings');
+        this.logger.log("Email worker initialized with production settings");
     }
     async onModuleInit() {
         await this.connect();
@@ -56,15 +56,18 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
         let retries = 0;
         while (retries < this.maxRetries) {
             try {
-                const rabbitmqUri = this.configService.get('RABBITMQ_URI') || 'amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br:5672';
+                const rabbitmqUri = this.configService.get("RABBITMQ_URI") ||
+                    "amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br:5672";
                 if (!rabbitmqUri) {
-                    throw new Error('RABBITMQ_URI environment variable is not set');
+                    throw new Error("RABBITMQ_URI environment variable is not set");
                 }
                 const conn = await amqp.connect(rabbitmqUri);
                 this.connection = conn;
                 const ch = await conn.createChannel();
                 this.channel = ch;
-                await this.channel.assertExchange(this.deadLetterExchange, 'direct', { durable: true });
+                await this.channel.assertExchange(this.deadLetterExchange, "direct", {
+                    durable: true,
+                });
                 await this.channel.assertQueue(this.deadLetterQueue, { durable: true });
                 await this.channel.bindQueue(this.deadLetterQueue, this.deadLetterExchange, this.queueName);
                 try {
@@ -72,18 +75,18 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
                     this.logger.log(`[EmailWorker] Fila existente encontrada: ${JSON.stringify(queueInfo)}`);
                 }
                 catch (error) {
-                    this.logger.log('[EmailWorker] Fila não existe, criando nova fila...');
+                    this.logger.log("[EmailWorker] Fila não existe, criando nova fila...");
                     await this.channel.assertQueue(this.queueName, {
                         durable: true,
                         arguments: {
-                            'x-message-ttl': 86400000,
-                            'x-dead-letter-exchange': this.deadLetterExchange,
-                            'x-dead-letter-routing-key': this.queueName
-                        }
+                            "x-message-ttl": 86400000,
+                            "x-dead-letter-exchange": this.deadLetterExchange,
+                            "x-dead-letter-routing-key": this.queueName,
+                        },
                     });
                 }
                 await this.channel.prefetch(1);
-                this.logger.log('[EmailWorker] Conectado ao RabbitMQ com sucesso');
+                this.logger.log("[EmailWorker] Conectado ao RabbitMQ com sucesso");
                 return;
             }
             catch (error) {
@@ -91,10 +94,10 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
                 this.logger.error(`[EmailWorker] Erro ao conectar ao RabbitMQ (tentativa ${retries}/${this.maxRetries}):`, error);
                 if (retries < this.maxRetries) {
                     this.logger.log(`[EmailWorker] Tentando reconectar em ${this.retryDelay / 1000} segundos...`);
-                    await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                    await new Promise((resolve) => setTimeout(resolve, this.retryDelay));
                 }
                 else {
-                    this.logger.error('[EmailWorker] Número máximo de tentativas de conexão atingido');
+                    this.logger.error("[EmailWorker] Número máximo de tentativas de conexão atingido");
                     throw error;
                 }
             }
@@ -113,15 +116,15 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
                         this.channel.ack(msg);
                     }
                     catch (error) {
-                        this.logger.error('[EmailWorker] Erro ao processar mensagem:', error);
+                        this.logger.error("[EmailWorker] Erro ao processar mensagem:", error);
                         this.channel.nack(msg, false, true);
                     }
                 }
             });
-            this.logger.log('[EmailWorker] Consumidor iniciado com sucesso');
+            this.logger.log("[EmailWorker] Consumidor iniciado com sucesso");
         }
         catch (error) {
-            this.logger.error('[EmailWorker] Erro ao iniciar consumidor:', error);
+            this.logger.error("[EmailWorker] Erro ao iniciar consumidor:", error);
             setTimeout(() => this.consume(), this.retryDelay);
         }
     }
@@ -131,18 +134,18 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
             try {
                 const mailOptions = {
                     from: {
-                        name: this.configService.get('SMTP_FROM_NAME', 'GWAN'),
-                        address: this.configService.get('SMTP_FROM_EMAIL', 'gwan@gwan.com.br')
+                        name: this.configService.get("SMTP_FROM_NAME", "GWAN"),
+                        address: this.configService.get("SMTP_FROM_EMAIL", "gwan@gwan.com.br"),
                     },
                     to: emailData.to,
                     subject: emailData.subject,
                     text: emailData.content,
-                    html: emailData.content.replace(/\n/g, '<br>'),
+                    html: emailData.content.replace(/\n/g, "<br>"),
                     headers: {
-                        'X-Priority': '1',
-                        'X-MSMail-Priority': 'High',
-                        'Importance': 'high'
-                    }
+                        "X-Priority": "1",
+                        "X-MSMail-Priority": "High",
+                        Importance: "high",
+                    },
                 };
                 await this.transporter.sendMail(mailOptions);
                 this.logger.log(`[EmailWorker] Email enviado com sucesso - Assunto [${emailData.subject}] para [${emailData.to}] conteudo[${emailData.content}] date[${new Date().toISOString()}]`);
@@ -153,10 +156,10 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
                 this.logger.error(`[EmailWorker] Erro ao enviar email (tentativa ${retries}/${this.maxRetries}):`, error);
                 if (retries < this.maxRetries) {
                     this.logger.log(`[EmailWorker] Tentando reenviar em ${this.retryDelay / 1000} segundos...`);
-                    await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                    await new Promise((resolve) => setTimeout(resolve, this.retryDelay));
                 }
                 else {
-                    this.logger.error('[EmailWorker] Número máximo de tentativas de envio atingido');
+                    this.logger.error("[EmailWorker] Número máximo de tentativas de envio atingido");
                     throw error;
                 }
             }
@@ -171,10 +174,10 @@ let EmailWorker = EmailWorker_1 = class EmailWorker {
                 const conn = this.connection;
                 await conn.close();
             }
-            this.logger.log('[EmailWorker] Conexões fechadas com sucesso');
+            this.logger.log("[EmailWorker] Conexões fechadas com sucesso");
         }
         catch (error) {
-            this.logger.error('[EmailWorker] Erro ao fechar conexões:', error);
+            this.logger.error("[EmailWorker] Erro ao fechar conexões:", error);
         }
     }
 };

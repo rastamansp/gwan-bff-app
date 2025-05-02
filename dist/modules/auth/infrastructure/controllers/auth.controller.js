@@ -33,7 +33,7 @@ let AuthController = AuthController_1 = class AuthController {
         this.logger.debug(`[Register] Dados recebidos: ${JSON.stringify({
             name: data.name,
             email: data.email,
-            whatsapp: data.whatsapp
+            whatsapp: data.whatsapp,
         })}`);
         try {
             const result = await this.registerUseCase.execute(data);
@@ -84,84 +84,84 @@ let AuthController = AuthController_1 = class AuthController {
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, common_1.Post)('register'),
-    (0, swagger_1.ApiOperation)({ summary: 'Register a new user' }),
+    (0, common_1.Post)("register"),
+    (0, swagger_1.ApiOperation)({ summary: "Register a new user" }),
     (0, swagger_1.ApiBody)({
         schema: {
-            type: 'object',
+            type: "object",
             properties: {
-                name: { type: 'string', example: 'Pedro Almeida' },
-                email: { type: 'string', example: 'pedro.hp.almeida@gmail.com' },
-                whatsapp: { type: 'string', example: '+5511999999999' },
+                name: { type: "string", example: "Pedro Almeida" },
+                email: { type: "string", example: "pedro.hp.almeida@gmail.com" },
+                whatsapp: { type: "string", example: "+5511999999999" },
             },
         },
     }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'User registered successfully' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid input data' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "User registered successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: "Invalid input data" }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
-    (0, common_1.Post)('verify'),
-    (0, swagger_1.ApiOperation)({ summary: 'Verify activation code' }),
+    (0, common_1.Post)("verify"),
+    (0, swagger_1.ApiOperation)({ summary: "Verify activation code" }),
     (0, swagger_1.ApiBody)({
         schema: {
-            type: 'object',
+            type: "object",
             properties: {
-                email: { type: 'string', example: 'pedro.hp.almeida@gmail.com' },
-                code: { type: 'string', example: '123456' },
+                email: { type: "string", example: "pedro.hp.almeida@gmail.com" },
+                code: { type: "string", example: "123456" },
             },
         },
     }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Code verified successfully' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid code' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Code verified successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: "Invalid code" }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verify", null);
 __decorate([
-    (0, common_1.Post)('login'),
-    (0, swagger_1.ApiOperation)({ summary: 'Request login' }),
+    (0, common_1.Post)("login"),
+    (0, swagger_1.ApiOperation)({ summary: "Request login" }),
     (0, swagger_1.ApiBody)({
         schema: {
-            type: 'object',
+            type: "object",
             properties: {
-                email: { type: 'string', example: 'pedro.hp.almeida@gmail.com' },
+                email: { type: "string", example: "pedro.hp.almeida@gmail.com" },
             },
         },
     }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Login code sent successfully' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid credentials' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Login code sent successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: "Invalid credentials" }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
-    (0, common_1.Post)('verify-login'),
-    (0, swagger_1.ApiOperation)({ summary: 'Verify login code' }),
+    (0, common_1.Post)("verify-login"),
+    (0, swagger_1.ApiOperation)({ summary: "Verify login code" }),
     (0, swagger_1.ApiBody)({
         schema: {
-            type: 'object',
+            type: "object",
             properties: {
-                email: { type: 'string', example: 'pedro.hp.almeida@gmail.com' },
-                code: { type: 'string', example: '123456' },
+                email: { type: "string", example: "pedro.hp.almeida@gmail.com" },
+                code: { type: "string", example: "123456" },
             },
         },
     }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Login successful' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid code' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Login successful" }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: "Invalid code" }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyLogin", null);
 exports.AuthController = AuthController = AuthController_1 = __decorate([
-    (0, swagger_1.ApiTags)('auth'),
-    (0, common_1.Controller)('auth'),
+    (0, swagger_1.ApiTags)("auth"),
+    (0, common_1.Controller)("auth"),
     __metadata("design:paramtypes", [register_use_case_1.RegisterUseCase,
         verify_code_use_case_1.VerifyCodeUseCase,
         login_use_case_1.LoginUseCase,

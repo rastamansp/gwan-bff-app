@@ -1,7 +1,7 @@
-import { RegisterUseCase } from '../../domain/use-cases/register.use-case';
-import { VerifyCodeUseCase } from '../../domain/use-cases/verify-code.use-case';
-import { LoginUseCase } from '../../domain/use-cases/login.use-case';
-import { VerifyLoginUseCase } from '../../domain/use-cases/verify-login.use-case';
+import { RegisterUseCase } from "../../domain/use-cases/register.use-case";
+import { VerifyCodeUseCase } from "../../domain/use-cases/verify-code.use-case";
+import { LoginUseCase } from "../../domain/use-cases/login.use-case";
+import { VerifyLoginUseCase } from "../../domain/use-cases/verify-login.use-case";
 export declare class AuthController {
     private readonly registerUseCase;
     private readonly verifyCodeUseCase;

@@ -199,6 +199,88 @@ src/
   - file: [PDF File] (campo do tipo arquivo, máximo 5MB)
   ```
 
+### Knowledge Base
+- `POST /user/knowledge` - Criar uma nova base de conhecimento
+  ```json
+  Request Body:
+  {
+    "fileId": "507f1f77bcf86cd799439011",
+    "name": "Base de Conhecimento de Marketing",
+    "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
+    "filename": "marketing_strategies.pdf"
+  }
+
+  Response (201 Created):
+  {
+    "_id": "507f1f77bcf86cd799439011",
+    "userId": "507f1f77bcf86cd799439012",
+    "fileId": "507f1f77bcf86cd799439013",
+    "name": "Base de Conhecimento de Marketing",
+    "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
+    "filename": "marketing_strategies.pdf",
+    "status": "processing",
+    "createdAt": "2024-03-21T10:00:00.000Z",
+    "updatedAt": "2024-03-21T10:00:00.000Z"
+  }
+
+  Errors:
+  - 400 Bad Request: Dados inválidos fornecidos
+  - 401 Unauthorized: Não autorizado
+  ```
+
+- `GET /user/knowledge` - Listar bases de conhecimento
+  ```json
+  Response (200 OK):
+  [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "userId": "507f1f77bcf86cd799439012",
+      "fileId": "507f1f77bcf86cd799439013",
+      "name": "Base de Conhecimento de Marketing",
+      "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
+      "filename": "marketing_strategies.pdf",
+      "status": "processing",
+      "createdAt": "2024-03-21T10:00:00.000Z",
+      "updatedAt": "2024-03-21T10:00:00.000Z"
+    }
+  ]
+
+  Errors:
+  - 401 Unauthorized: Não autorizado
+  ```
+
+- `GET /user/knowledge/:id` - Obter base de conhecimento específica
+  ```json
+  Response (200 OK):
+  {
+    "_id": "507f1f77bcf86cd799439011",
+    "userId": "507f1f77bcf86cd799439012",
+    "fileId": "507f1f77bcf86cd799439013",
+    "name": "Base de Conhecimento de Marketing",
+    "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
+    "filename": "marketing_strategies.pdf",
+    "status": "processing",
+    "createdAt": "2024-03-21T10:00:00.000Z",
+    "updatedAt": "2024-03-21T10:00:00.000Z"
+  }
+
+  Errors:
+  - 401 Unauthorized: Não autorizado
+  - 404 Not Found: Base de conhecimento não encontrada
+  ```
+
+- `DELETE /user/knowledge/:id` - Excluir base de conhecimento
+  ```json
+  Response (200 OK):
+  {
+    "message": "Base de conhecimento excluída com sucesso"
+  }
+
+  Errors:
+  - 401 Unauthorized: Não autorizado
+  - 404 Not Found: Base de conhecimento não encontrada
+  ```
+
 ## 📁 Estrutura de Armazenamento
 
 ### MinIO (Bucket Storage)
@@ -534,3 +616,30 @@ O sistema inclui logs detalhados para:
 3. Implementar sistema de backup
 4. Adicionar suporte a compressão
 5. Implementar sistema de versionamento 
+
+## 🔒 Autenticação
+
+Todos os endpoints de usuário (exceto autenticação) requerem um token JWT válido no header `Authorization`:
+
+```
+Authorization: Bearer <token>
+```
+
+O token é obtido após o login bem-sucedido através do endpoint `/auth/login`.
+
+## 📝 Status da Base de Conhecimento
+
+As bases de conhecimento podem ter os seguintes status:
+
+- `processing`: Base está sendo processada
+- `completed`: Processamento concluído com sucesso
+- `failed`: Falha no processamento
+
+## 🔄 Processamento Assíncrono
+
+O processamento das bases de conhecimento é feito de forma assíncrona através do RabbitMQ. Após a criação da base, o sistema:
+
+1. Envia uma mensagem para a fila de processamento
+2. Atualiza o status da base para `processing`
+3. Um worker processa o arquivo em background
+4. O status é atualizado para `completed` ou `failed` após o processamento 

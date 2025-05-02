@@ -18,6 +18,8 @@ const health_module_1 = require("./modules/health/health.module");
 const email_module_1 = require("./workers/email/email.module");
 const dataset_module_1 = require("./modules/dataset/dataset.module");
 const knowledge_module_1 = require("./modules/knowledge/knowledge.module");
+const rabbitmq_module_1 = require("./modules/rabbitmq/rabbitmq.module");
+const users_module_1 = require("./modules/users/users.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -26,14 +28,15 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-                envFilePath: '.env',
+                envFilePath: ".env",
                 expandVariables: true,
                 cache: true,
             }),
             mongoose_1.MongooseModule.forRootAsync({
                 imports: [config_1.ConfigModule],
                 useFactory: (configService) => {
-                    const uri = configService.get('MONGODB_URI') || 'mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin';
+                    const uri = configService.get("MONGODB_URI") ||
+                        "mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin";
                     return { uri };
                 },
                 inject: [config_1.ConfigService],
@@ -44,6 +47,8 @@ exports.AppModule = AppModule = __decorate([
             email_module_1.EmailWorkerModule,
             dataset_module_1.DatasetModule,
             knowledge_module_1.KnowledgeModule,
+            rabbitmq_module_1.RabbitMQModule,
+            users_module_1.UsersModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

@@ -1,5 +1,5 @@
-import { OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 export declare class EmailWorker implements OnModuleInit, OnModuleDestroy {
     private readonly configService;
     private connection;

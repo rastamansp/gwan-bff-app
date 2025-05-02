@@ -1,6 +1,6 @@
-import { Model } from 'mongoose';
-import { User } from '../../domain/entities/user.entity';
-import { IUserRepository } from '../../domain/repositories/user.repository';
+import { Model } from "mongoose";
+import { User } from "../../domain/entities/user.entity";
+import { IUserRepository } from "../../domain/repositories/user.repository";
 export declare class UserRepositoryImpl implements IUserRepository {
     private readonly userModel;
     constructor(userModel: Model<User>);

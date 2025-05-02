@@ -22,31 +22,33 @@ let RabbitMQService = RabbitMQService_1 = class RabbitMQService {
     }
     async connect() {
         try {
-            this.logger.log('Iniciando conexão com RabbitMQ...');
-            const rabbitmqUri = this.configService.get('RABBITMQ_URL');
+            this.logger.log("Iniciando conexão com RabbitMQ...");
+            const rabbitmqUri = this.configService.get("RABBITMQ_URL");
             if (!rabbitmqUri) {
-                throw new Error('RABBITMQ_URI não está definida nas variáveis de ambiente');
+                throw new Error("RABBITMQ_URI não está definida nas variáveis de ambiente");
             }
             const conn = await amqp.connect(rabbitmqUri);
             this.connection = conn;
             const ch = await conn.createChannel();
             this.channel = ch;
-            this.logger.log('Declarando filas...');
-            await this.channel.assertQueue('email_notifications', {
+            this.logger.log("Declarando filas...");
+            await this.channel.assertQueue("email_notifications", {
                 durable: true,
                 arguments: {
-                    'x-message-ttl': 86400000,
-                    'x-dead-letter-exchange': 'email_notifications_dlx',
-                    'x-dead-letter-routing-key': 'email_notifications'
-                }
+                    "x-message-ttl": 86400000,
+                    "x-dead-letter-exchange": "email_notifications_dlx",
+                    "x-dead-letter-routing-key": "email_notifications",
+                },
             });
-            await this.channel.assertQueue('whatsapp_notifications', { durable: true });
-            this.logger.log('Filas declaradas com sucesso');
-            this.logger.log('[RabbitMQ] Conectado com sucesso');
+            await this.channel.assertQueue("whatsapp_notifications", {
+                durable: true,
+            });
+            this.logger.log("Filas declaradas com sucesso");
+            this.logger.log("[RabbitMQ] Conectado com sucesso");
         }
         catch (error) {
-            this.logger.error('[RabbitMQ] Erro ao conectar:', error);
-            this.logger.log('[RabbitMQ] Tentando reconectar em 5 segundos...');
+            this.logger.error("[RabbitMQ] Erro ao conectar:", error);
+            this.logger.log("[RabbitMQ] Tentando reconectar em 5 segundos...");
             setTimeout(() => this.connect(), 5000);
         }
     }
@@ -54,13 +56,13 @@ let RabbitMQService = RabbitMQService_1 = class RabbitMQService {
         try {
             this.logger.log(`Verificando conexão com RabbitMQ para envio à fila ${queue}...`);
             if (!this.channel) {
-                this.logger.log('Canal não encontrado, tentando reconectar...');
+                this.logger.log("Canal não encontrado, tentando reconectar...");
                 await this.connect();
             }
             const messageBuffer = Buffer.from(JSON.stringify(message));
             this.logger.debug(`Enviando mensagem para fila ${queue}: ${messageBuffer.toString()}`);
             await this.channel.sendToQueue(queue, messageBuffer, {
-                persistent: true
+                persistent: true,
             });
             this.logger.log(`[RabbitMQ] Mensagem enviada com sucesso para a fila ${queue}`);
         }
@@ -71,19 +73,19 @@ let RabbitMQService = RabbitMQService_1 = class RabbitMQService {
     }
     async closeConnection() {
         try {
-            this.logger.log('Fechando conexão com RabbitMQ...');
+            this.logger.log("Fechando conexão com RabbitMQ...");
             if (this.channel) {
                 await this.channel.close();
-                this.logger.log('Canal fechado com sucesso');
+                this.logger.log("Canal fechado com sucesso");
             }
             if (this.connection) {
                 const conn = this.connection;
                 await conn.close();
-                this.logger.log('Conexão fechada com sucesso');
+                this.logger.log("Conexão fechada com sucesso");
             }
         }
         catch (error) {
-            this.logger.error('[RabbitMQ] Erro ao fechar conexão:', error);
+            this.logger.error("[RabbitMQ] Erro ao fechar conexão:", error);
         }
     }
 };

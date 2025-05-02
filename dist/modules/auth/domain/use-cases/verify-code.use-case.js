@@ -22,40 +22,40 @@ let VerifyCodeUseCase = class VerifyCodeUseCase extends base_use_case_1.BaseUseC
         const user = await this.userService.findByEmail(data.email);
         if (!user) {
             throw new common_1.NotFoundException({
-                message: 'Usuário não encontrado',
-                code: 'USER_NOT_FOUND',
+                message: "Usuário não encontrado",
+                code: "USER_NOT_FOUND",
                 details: {
-                    email: data.email
-                }
+                    email: data.email,
+                },
             });
         }
         if (!user.activationCode || !user.activationCodeExpiresAt) {
             throw new common_1.BadRequestException({
-                message: 'Código de ativação não encontrado',
-                code: 'ACTIVATION_CODE_NOT_FOUND',
+                message: "Código de ativação não encontrado",
+                code: "ACTIVATION_CODE_NOT_FOUND",
                 details: {
-                    email: data.email
-                }
+                    email: data.email,
+                },
             });
         }
         if (user.activationCode !== data.code) {
             throw new common_1.BadRequestException({
-                message: 'Código de ativação inválido',
-                code: 'INVALID_ACTIVATION_CODE',
+                message: "Código de ativação inválido",
+                code: "INVALID_ACTIVATION_CODE",
                 details: {
                     email: data.email,
-                    providedCode: data.code
-                }
+                    providedCode: data.code,
+                },
             });
         }
         if (user.activationCodeExpiresAt < new Date()) {
             throw new common_1.BadRequestException({
-                message: 'Código de ativação expirado',
-                code: 'ACTIVATION_CODE_EXPIRED',
+                message: "Código de ativação expirado",
+                code: "ACTIVATION_CODE_EXPIRED",
                 details: {
                     email: data.email,
-                    expiresAt: user.activationCodeExpiresAt
-                }
+                    expiresAt: user.activationCodeExpiresAt,
+                },
             });
         }
         return this.userService.verifyUser(user.id);
