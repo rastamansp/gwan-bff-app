@@ -7,9 +7,9 @@ import { IBucketFileRepository } from "../../domain/repositories/bucket-file.rep
 @Injectable()
 export class BucketFileRepositoryImpl implements IBucketFileRepository {
   constructor(
-    @InjectModel("BucketFile")
+    @InjectModel(BucketFile.name)
     private readonly bucketFileModel: Model<BucketFile>,
-  ) {}
+  ) { }
 
   async findById(id: string): Promise<BucketFile | null> {
     return this.bucketFileModel.findById(id).exec();

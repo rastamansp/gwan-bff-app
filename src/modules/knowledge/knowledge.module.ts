@@ -7,7 +7,6 @@ import {
   KnowledgeBaseSchema,
 } from "./schemas/knowledge-base.schema";
 import { AuthModule } from "../auth/auth.module";
-import { DatasetService } from "./infrastructure/services/dataset.service";
 import { RabbitMQService } from "./infrastructure/services/rabbitmq.service";
 import { DatasetModule } from '../dataset/dataset.module';
 import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
@@ -22,8 +21,8 @@ import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
     RabbitMQModule
   ],
   controllers: [KnowledgeController],
-  providers: [KnowledgeService, DatasetService, RabbitMQService],
-  exports: [KnowledgeService, DatasetService],
+  providers: [KnowledgeService, RabbitMQService],
+  exports: [KnowledgeService],
 })
 export class KnowledgeModule {
   constructor(private readonly rabbitMQService: RabbitMQService) { }

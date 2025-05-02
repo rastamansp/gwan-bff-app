@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      #context: https://github.com/rastamansp/gwan-bff-app.git#main # Usa o repositório git como contexto
-      context: .
+      context: https://github.com/rastamansp/gwan-bff-app.git # Usa o repositório git como contexto
+      #context: .
       dockerfile: Dockerfile
     image: node:20-bullseye
     container_name: gwan_bff_api
