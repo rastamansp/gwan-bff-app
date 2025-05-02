@@ -9,8 +9,8 @@ import { Model } from "mongoose";
 import { KnowledgeBase } from "./schemas/knowledge-base.schema";
 import { CreateKnowledgeBaseDto } from "./dto/create-knowledge-base.dto";
 import { UpdateKnowledgeBaseDto } from "./dto/update-knowledge-base.dto";
-import { DatasetService } from "@knowledge/infrastructure/services/dataset.service";
-import { RabbitMQService } from "../rabbitmq/rabbitmq.service";
+import { DatasetService } from "./infrastructure/services/dataset.service";
+import { RabbitMQService } from "./infrastructure/services/rabbitmq.service";
 
 @Injectable()
 export class KnowledgeService {

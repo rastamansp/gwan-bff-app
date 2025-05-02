@@ -17,19 +17,21 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ],
     "paths": {
       "@/*": [
         "src/*"
       ],
-      "@auth/*": [
-        "src/modules/auth/*"
+      "@modules/*": [
+        "src/modules/*"
       ],
-      "@knowledge/*": [
-        "src/modules/knowledge/*"
+      "@core/*": [
+        "src/core/*"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ],
+      "@workers/*": [
+        "src/workers/*"
       ]
     }
   },

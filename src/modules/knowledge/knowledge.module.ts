@@ -7,7 +7,7 @@ import {
   KnowledgeBaseSchema,
 } from "./schemas/knowledge-base.schema";
 import { AuthModule } from "../auth/auth.module";
-import { DatasetService } from "@knowledge/infrastructure/services/dataset.service";
+import { DatasetService } from "./infrastructure/services/dataset.service";
 import {
   BucketFile,
   BucketFileSchema,

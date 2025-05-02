@@ -1,4 +1,4 @@
-FROM node:20-bullseye AS builder
+FROM node:20-bullseye as builder
 
 # Create app user and set up directories with root
 RUN getent group appgroup || groupadd -r appgroup && \
@@ -21,7 +21,7 @@ ENV NPM_CONFIG_PREFIX=/app/.npm-global
 # Copy package files
 COPY --chown=appuser:appgroup package*.json ./
 
-# Install all dependencies (including devDependencies)
+# Install ALL dependencies (including devDependencies) in builder stage
 RUN npm install --legacy-peer-deps
 
 # Copy source code
@@ -33,8 +33,8 @@ RUN echo "=== Source files (strategies) ===" && \
     echo "=== Source files (guards) ===" && \
     ls -la src/modules/auth/infrastructure/guards/
 
-# Build the application with verbose output
-RUN npm run build --verbose
+# Build with webpack
+RUN npm run build
 
 # Verify the build output
 RUN echo "=== Checking build output (strategies) ===" && \
@@ -65,8 +65,7 @@ ENV NPM_CONFIG_CACHE=/app/.npm-cache
 ENV NPM_CONFIG_LOGS=/app/.npm-logs
 ENV NPM_CONFIG_PREFIX=/app/.npm-global
 
-# Copy built application and necessary files
-COPY --chown=appuser:appgroup package*.json ./
+# Install only production dependencies in final stage
 RUN npm install --only=production --legacy-peer-deps
 
 # Copy dist and node_modules

@@ -6,7 +6,7 @@ import { IUserRepository } from "../../domain/repositories/user.repository";
 
 @Injectable()
 export class UserRepositoryImpl implements IUserRepository {
-  constructor(@InjectModel("User") private readonly userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private readonly userModel: Model<User>) { }
 
   async findById(id: string): Promise<User | null> {
     return this.userModel.findById(id).exec();
