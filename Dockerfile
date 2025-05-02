@@ -4,6 +4,10 @@ FROM node:20-bullseye AS builder
 RUN getent group appgroup || groupadd -r appgroup && \
     getent passwd appuser || useradd -r -g appgroup appuser
 
+# Create and set permissions for home directory
+RUN mkdir -p /home/appuser && \
+    chown -R appuser:appgroup /home/appuser
+
 WORKDIR /app
 
 # Set proper permissions
@@ -33,10 +37,8 @@ RUN npm run build --verbose
 # Verify the build output
 RUN echo "=== Checking build output (strategies) ===" && \
     ls -la dist/modules/auth/infrastructure/strategies/ && \
-    cat dist/modules/auth/infrastructure/strategies/jwt.strategy.js && \
     echo "=== Checking build output (guards) ===" && \
-    ls -la dist/modules/auth/infrastructure/guards/ && \
-    cat dist/modules/auth/infrastructure/guards/jwt-auth.guard.js
+    ls -la dist/modules/auth/infrastructure/guards/
 
 # Production stage
 FROM node:20-bullseye
@@ -44,6 +46,10 @@ FROM node:20-bullseye
 # Create app user (if not exists)
 RUN getent group appgroup || groupadd -r appgroup && \
     getent passwd appuser || useradd -r -g appgroup appuser
+
+# Create and set permissions for home directory
+RUN mkdir -p /home/appuser && \
+    chown -R appuser:appgroup /home/appuser
 
 WORKDIR /app
 
@@ -64,10 +70,8 @@ COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 # Verify the final files
 RUN echo "=== Verifying final files (strategies) ===" && \
     ls -la dist/modules/auth/infrastructure/strategies/ && \
-    cat dist/modules/auth/infrastructure/strategies/jwt.strategy.js && \
     echo "=== Verifying final files (guards) ===" && \
-    ls -la dist/modules/auth/infrastructure/guards/ && \
-    cat dist/modules/auth/infrastructure/guards/jwt-auth.guard.js
+    ls -la dist/modules/auth/infrastructure/guards/
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
