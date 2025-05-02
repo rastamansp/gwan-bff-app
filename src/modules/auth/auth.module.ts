@@ -12,7 +12,7 @@ import { User, UserSchema } from "./domain/entities/user.entity";
 import { NotificationService } from "./domain/services/notification.service";
 import { RabbitMQService } from "./domain/services/rabbitmq.service";
 import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
-import { JwtAuthGuard } from "./infrastructure/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "./infrastructure/guards";
 import { APP_GUARD } from '@nestjs/core';
 
 @Module({
@@ -34,6 +34,7 @@ import { APP_GUARD } from '@nestjs/core';
     NotificationService,
     RabbitMQService,
     JwtStrategy,
+    JwtAuthGuard,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
@@ -43,6 +44,6 @@ import { APP_GUARD } from '@nestjs/core';
       useClass: UserRepositoryImpl,
     },
   ],
-  exports: [UserService, JwtStrategy, JwtAuthGuard],
+  exports: [UserService, JwtStrategy],
 })
 export class AuthModule { }
