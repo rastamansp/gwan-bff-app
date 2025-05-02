@@ -22,16 +22,21 @@ RUN npm install --legacy-peer-deps
 COPY --chown=appuser:appgroup . .
 
 # Debug: List source files
-RUN echo "=== Source files ===" && \
-    ls -la src/modules/auth/infrastructure/strategies/
+RUN echo "=== Source files (strategies) ===" && \
+    ls -la src/modules/auth/infrastructure/strategies/ && \
+    echo "=== Source files (guards) ===" && \
+    ls -la src/modules/auth/infrastructure/guards/
 
 # Build the application with verbose output
 RUN npm run build --verbose
 
 # Verify the build output
-RUN echo "=== Checking build output ===" && \
+RUN echo "=== Checking build output (strategies) ===" && \
     ls -la dist/modules/auth/infrastructure/strategies/ && \
-    cat dist/modules/auth/infrastructure/strategies/jwt.strategy.js
+    cat dist/modules/auth/infrastructure/strategies/jwt.strategy.js && \
+    echo "=== Checking build output (guards) ===" && \
+    ls -la dist/modules/auth/infrastructure/guards/ && \
+    cat dist/modules/auth/infrastructure/guards/jwt-auth.guard.js
 
 # Production stage
 FROM node:20-bullseye
@@ -57,9 +62,12 @@ COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 
 # Verify the final files
-RUN echo "=== Verifying final files ===" && \
+RUN echo "=== Verifying final files (strategies) ===" && \
     ls -la dist/modules/auth/infrastructure/strategies/ && \
-    cat dist/modules/auth/infrastructure/strategies/jwt.strategy.js
+    cat dist/modules/auth/infrastructure/strategies/jwt.strategy.js && \
+    echo "=== Verifying final files (guards) ===" && \
+    ls -la dist/modules/auth/infrastructure/guards/ && \
+    cat dist/modules/auth/infrastructure/guards/jwt-auth.guard.js
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
