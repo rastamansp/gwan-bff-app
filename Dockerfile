@@ -15,13 +15,13 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Debug: List source files
-RUN ls -la src/modules/auth/infrastructure/strategies/
+RUN ls -la /app/src/modules/auth/infrastructure/strategies/
 
 # Build the application
 RUN npm run build
 
 # Debug: List dist files
-RUN ls -la dist/modules/auth/infrastructure/strategies/
+RUN ls -la /app/dist/modules/auth/infrastructure/strategies/
 
 # Production stage
 FROM node:20-alpine
@@ -50,5 +50,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
 EXPOSE 3000
+
+# Debug: Print the contents of the dist directory
+RUN find /app/dist -type f -name "*.js" | grep -i jwt
 
 CMD ["npm", "run", "start:prod"] 

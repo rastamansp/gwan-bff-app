@@ -44,14 +44,14 @@ exports.AuthModule = AuthModule = __decorate([
             user_repository_impl_1.UserRepositoryImpl,
             notification_service_1.NotificationService,
             rabbitmq_service_1.RabbitMQService,
-            jwt_strategy_1.JwtStrategy,
+            jwt_strategy_1.default,
             jwt_auth_guard_1.JwtAuthGuard,
             {
                 provide: "IUserRepository",
                 useClass: user_repository_impl_1.UserRepositoryImpl,
             },
         ],
-        exports: [user_service_1.UserService, jwt_strategy_1.JwtStrategy, jwt_auth_guard_1.JwtAuthGuard],
+        exports: [user_service_1.UserService, jwt_strategy_1.default, jwt_auth_guard_1.JwtAuthGuard],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

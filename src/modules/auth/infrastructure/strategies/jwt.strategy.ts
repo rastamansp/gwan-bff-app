@@ -35,3 +35,5 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return user;
   }
 }
+
+export default JwtStrategy;
