@@ -11,26 +11,36 @@ export class MongooseUserRepository implements IUserRepository {
         private readonly userModel: Model<UserDocument>,
     ) { }
 
+    private transformUser(user: any): User | null {
+        if (!user) return null;
+        const userObject = user.toObject();
+        return {
+            ...userObject,
+            id: userObject._id.toString(),
+            _id: undefined
+        };
+    }
+
     async findById(id: string): Promise<User | null> {
         const user = await this.userModel.findById(id).exec();
-        return user ? user.toObject() : null;
+        return this.transformUser(user);
     }
 
     async findAll(): Promise<User[]> {
         const users = await this.userModel.find().exec();
-        return users.map(user => user.toObject());
+        return users.map(user => this.transformUser(user));
     }
 
     async create(data: Partial<User>): Promise<User> {
         const user = await this.userModel.create(data);
-        return user.toObject();
+        return this.transformUser(user);
     }
 
     async update(id: string, data: Partial<User>): Promise<User> {
         const user = await this.userModel
             .findByIdAndUpdate(id, data, { new: true })
             .exec();
-        return user.toObject();
+        return this.transformUser(user);
     }
 
     async delete(id: string): Promise<void> {
@@ -39,17 +49,17 @@ export class MongooseUserRepository implements IUserRepository {
 
     async findByEmail(email: string): Promise<User | null> {
         const user = await this.userModel.findOne({ email }).exec();
-        return user ? user.toObject() : null;
+        return this.transformUser(user);
     }
 
     async findByWhatsApp(whatsapp: string): Promise<User | null> {
         const user = await this.userModel.findOne({ whatsapp }).exec();
-        return user ? user.toObject() : null;
+        return this.transformUser(user);
     }
 
     async findByVerificationCode(code: string): Promise<User | null> {
         const user = await this.userModel.findOne({ activationCode: code }).exec();
-        return user ? user.toObject() : null;
+        return this.transformUser(user);
     }
 
     async updateVerificationStatus(userId: string, isVerified: boolean): Promise<void> {
