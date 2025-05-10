@@ -58,14 +58,9 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
   }
 
   handleRequest(err: any, user: any, info: any) {
-    if (err) {
+    if (err || !user) {
       this.logger.error("[Auth] Erro na autenticação:", err);
-      throw err;
-    }
-
-    if (!user) {
-      this.logger.warn("[Auth] Usuário não encontrado no token JWT");
-      throw new UnauthorizedException("Usuário não autenticado");
+      throw err || new UnauthorizedException('Token inválido ou expirado');
     }
 
     this.logger.debug(`[Auth] Usuário autenticado com sucesso: ${user.email}`);

@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
   Param,
+  BadRequestException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { DatasetService } from "./dataset.service";
@@ -15,6 +16,7 @@ import { memoryStorage } from "multer";
 import { Request } from "express";
 import { JwtAuthGuard } from "../auth/infrastructure/guards/jwt-auth.guard";
 import { Multer } from "multer";
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -23,28 +25,37 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+@ApiTags('dataset')
 @Controller("user/dataset")
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class DatasetController {
   constructor(private readonly datasetService: DatasetService) { }
 
   @Get("list")
+  @ApiOperation({ summary: 'Listar arquivos do usuário' })
+  @ApiResponse({ status: 200, description: 'Lista de arquivos retornada com sucesso' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
   async listFiles(@Req() req: AuthenticatedRequest) {
     const userId = req.user.id;
     if (!userId) {
-      throw new Error("Usuário não autenticado");
+      throw new BadRequestException('Usuário não autenticado');
     }
-    return this.datasetService.listBucketContents(userId);
+    return this.datasetService.listFiles(userId);
   }
 
   @Post("upload")
+  @ApiOperation({ summary: 'Fazer upload de arquivo' })
+  @ApiResponse({ status: 201, description: 'Arquivo enviado com sucesso' })
+  @ApiResponse({ status: 400, description: 'Arquivo inválido' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
   @UseInterceptors(
     FileInterceptor("file", {
       storage: memoryStorage(),
       fileFilter: (req, file, callback) => {
         if (file.mimetype !== "application/pdf") {
           return callback(
-            new Error("Apenas arquivos PDF são permitidos!"),
+            new BadRequestException("Apenas arquivos PDF são permitidos!"),
             false,
           );
         }
@@ -60,23 +71,27 @@ export class DatasetController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (!file) {
-      throw new Error("Nenhum arquivo foi enviado");
+      throw new BadRequestException("Nenhum arquivo foi enviado");
     }
     const userId = req.user.id;
     if (!userId) {
-      throw new Error("Usuário não autenticado");
+      throw new BadRequestException("Usuário não autenticado");
     }
-    return this.datasetService.handleFileUpload(file, userId);
+    return this.datasetService.uploadFile(file, userId);
   }
 
   @Post(":knowledgeBaseId/documents")
+  @ApiOperation({ summary: 'Fazer upload de arquivo para base de conhecimento' })
+  @ApiResponse({ status: 201, description: 'Arquivo enviado com sucesso' })
+  @ApiResponse({ status: 400, description: 'Arquivo inválido' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
   @UseInterceptors(
     FileInterceptor("file", {
       storage: memoryStorage(),
       fileFilter: (req, file, callback) => {
         if (file.mimetype !== "application/pdf") {
           return callback(
-            new Error("Apenas arquivos PDF são permitidos!"),
+            new BadRequestException("Apenas arquivos PDF são permitidos!"),
             false,
           );
         }
@@ -93,12 +108,12 @@ export class DatasetController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (!file) {
-      throw new Error("Nenhum arquivo foi enviado");
+      throw new BadRequestException("Nenhum arquivo foi enviado");
     }
     const userId = req.user.id;
     if (!userId) {
-      throw new Error("Usuário não autenticado");
+      throw new BadRequestException("Usuário não autenticado");
     }
-    return this.datasetService.handleFileUpload(file, userId, knowledgeBaseId);
+    return this.datasetService.uploadFile(file, userId, knowledgeBaseId);
   }
 }

@@ -10,19 +10,41 @@ import { AuthModule } from "../auth/auth.module";
 import { RabbitMQService } from "./infrastructure/services/rabbitmq.service";
 import { DatasetModule } from '../dataset/dataset.module';
 import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
+import { DomainKnowledgeService } from './domain/services/knowledge.service';
+import { KnowledgeRepository } from './infrastructure/repositories/knowledge.repository';
+import { IKnowledgeRepository } from './domain/interfaces/knowledge.repository.interface';
+import { Knowledge, KnowledgeSchema } from './domain/entities/knowledge.entity';
+
+export const KNOWLEDGE_REPOSITORY = 'KNOWLEDGE_REPOSITORY';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: KnowledgeBase.name, schema: KnowledgeBaseSchema },
+      { name: Knowledge.name, schema: KnowledgeSchema },
     ]),
     AuthModule,
     DatasetModule,
     RabbitMQModule
   ],
   controllers: [KnowledgeController],
-  providers: [KnowledgeService, RabbitMQService],
-  exports: [KnowledgeService],
+  providers: [
+    KnowledgeService,
+    RabbitMQService,
+    KnowledgeRepository,
+    {
+      provide: KNOWLEDGE_REPOSITORY,
+      useClass: KnowledgeRepository,
+    },
+    {
+      provide: DomainKnowledgeService,
+      useFactory: (repository: IKnowledgeRepository) => {
+        return new DomainKnowledgeService(repository);
+      },
+      inject: [KNOWLEDGE_REPOSITORY],
+    },
+  ],
+  exports: [KnowledgeService, DomainKnowledgeService],
 })
 export class KnowledgeModule {
   constructor(private readonly rabbitMQService: RabbitMQService) { }

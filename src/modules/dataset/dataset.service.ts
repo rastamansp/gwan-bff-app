@@ -6,9 +6,13 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Minio from "minio";
-import { BucketFile } from "./domain/entities/bucket-file.entity";
+import { BucketFile, FileStatus } from "./domain/entities/bucket-file.entity";
 import { IBucketFileRepository } from "./domain/repositories/bucket-file.repository";
 import { Multer } from "multer";
+import { Types } from 'mongoose';
+import { IStorageService } from './domain/services/storage.service.interface';
+import { FileUploadResult } from './application/dtos/file-result.dto';
+import { STORAGE_SERVICE, BUCKET_FILE_REPOSITORY } from './domain/constants/injection-tokens';
 
 @Injectable()
 export class DatasetService {
@@ -18,8 +22,10 @@ export class DatasetService {
 
   constructor(
     private configService: ConfigService,
-    @Inject("IBucketFileRepository")
+    @Inject(BUCKET_FILE_REPOSITORY)
     private readonly bucketFileRepository: IBucketFileRepository,
+    @Inject(STORAGE_SERVICE)
+    private readonly storageService: IStorageService,
   ) {
     // Basic MinIO configuration
     const minioConfig = {
@@ -111,95 +117,54 @@ export class DatasetService {
       });
       throw new InternalServerErrorException(
         error.message ||
-          "Ocorreu um erro inesperado ao listar o conteúdo do bucket",
+        "Ocorreu um erro inesperado ao listar o conteúdo do bucket",
       );
     }
   }
 
-  async handleFileUpload(
-    file: Multer["File"],
-    userId: string,
-    knowledgeBaseId?: string,
-  ) {
-    try {
-      // Verifica se o bucket existe antes de tentar fazer upload
-      const exists = await this.minioClient.bucketExists(this.bucketName);
-      if (!exists) {
-        throw new InternalServerErrorException(
-          `Bucket ${this.bucketName} não encontrado. Por favor, crie o bucket no console do MinIO.`,
-        );
-      }
+  async uploadFile(file: Multer['File'], userId: string, knowledgeBaseId?: string): Promise<FileUploadResult> {
+    this.logger.debug(`[UploadFile] Iniciando upload para usuário: ${userId}`);
 
-      // Cria o nome do objeto incluindo o diretório do usuário e knowledgeBaseId se fornecido
-      const objectName = knowledgeBaseId
-        ? `${userId}/${knowledgeBaseId}/${Date.now()}-${file.originalname}`
-        : `${userId}/${Date.now()}-${file.originalname}`;
+    // Cria o nome do objeto incluindo o diretório do usuário e knowledgeBaseId se fornecido
+    const objectName = knowledgeBaseId
+      ? `${userId}/${knowledgeBaseId}/${Date.now()}-${file.originalname}`
+      : `${userId}/${Date.now()}-${file.originalname}`;
 
-      const fileBuffer = file.buffer;
+    // Faz upload do arquivo
+    await this.storageService.uploadFile(file, objectName);
 
-      if (!fileBuffer) {
-        throw new InternalServerErrorException(
-          "Arquivo inválido ou corrompido",
-        );
-      }
+    // Gera URL temporária para o arquivo
+    const url = await this.storageService.getFileUrl(objectName);
 
-      this.logger.debug("Fazendo upload do arquivo...", {
-        filename: file.originalname,
-        size: file.size,
-        mimetype: file.mimetype,
-        objectName: objectName,
-        knowledgeBaseId: knowledgeBaseId,
-      });
+    // Armazena informações do arquivo no MongoDB
+    const bucketFile = await this.bucketFileRepository.create({
+      userId: new Types.ObjectId(userId),
+      originalName: file.originalname,
+      fileName: objectName,
+      size: file.size,
+      mimeType: file.mimetype,
+      url,
+      bucketName: 'datasets',
+      knowledgeBaseId: knowledgeBaseId ? new Types.ObjectId(knowledgeBaseId) : undefined,
+      status: 'available' as FileStatus,
+    });
 
-      await this.minioClient.putObject(
-        this.bucketName,
-        objectName,
-        fileBuffer,
-        file.size,
-        { "Content-Type": file.mimetype },
-      );
+    this.logger.debug(`[UploadFile] Upload concluído com sucesso: ${bucketFile.id}`);
 
-      this.logger.debug("Upload do arquivo concluído com sucesso");
+    return {
+      id: bucketFile.id,
+      originalname: file.originalname,
+      filename: objectName,
+      size: file.size,
+      mimetype: file.mimetype,
+      url,
+      knowledgeBaseId,
+      status: bucketFile.status,
+    };
+  }
 
-      // Gera URL temporária para o arquivo
-      const url = await this.minioClient.presignedGetObject(
-        this.bucketName,
-        objectName,
-        24 * 60 * 60, // URL válida por 24 horas
-      );
-
-      // Store file information in MongoDB
-      const bucketFile = await this.bucketFileRepository.create({
-        userId,
-        originalName: file.originalname,
-        fileName: objectName,
-        size: file.size,
-        mimeType: file.mimetype,
-        url,
-        bucketName: this.bucketName,
-        knowledgeBaseId: knowledgeBaseId,
-      });
-
-      return {
-        id: bucketFile.id,
-        originalname: file.originalname,
-        filename: objectName,
-        size: file.size,
-        mimetype: file.mimetype,
-        url: url,
-        knowledgeBaseId: knowledgeBaseId,
-      };
-    } catch (error: any) {
-      this.logger.error("Erro ao fazer upload do arquivo:", {
-        error: error,
-        message: error.message,
-        code: error.code,
-        statusCode: error.statusCode,
-        filename: file?.originalname,
-      });
-      throw new InternalServerErrorException(
-        error.message || "Falha ao fazer upload do arquivo",
-      );
-    }
+  async listFiles(userId: string) {
+    this.logger.debug(`[ListFiles] Listando arquivos do usuário: ${userId}`);
+    return this.bucketFileRepository.findByUserId(userId);
   }
 }

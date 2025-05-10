@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { IKnowledgeService } from '../interfaces/knowledge.service.interface';
 import { Knowledge, KnowledgeDocument } from '../entities/knowledge.entity';
 import { IKnowledgeRepository } from '../interfaces/knowledge.repository.interface';
@@ -6,10 +6,12 @@ import { CreateKnowledgeDto } from '../dtos/create-knowledge.dto';
 import { UpdateKnowledgeDto } from '../dtos/update-knowledge.dto';
 import { KnowledgeResponseDto } from '../dtos/knowledge-response.dto';
 import { KnowledgeMapper } from '../mappers/knowledge.mapper';
+import { KNOWLEDGE_REPOSITORY } from '../../knowledge.module';
 
 @Injectable()
-export class KnowledgeService implements IKnowledgeService {
+export class DomainKnowledgeService implements IKnowledgeService {
     constructor(
+        @Inject(KNOWLEDGE_REPOSITORY)
         private readonly knowledgeRepository: IKnowledgeRepository,
     ) { }
 

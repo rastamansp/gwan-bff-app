@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { IKnowledgeService } from '../../../domain/interfaces/knowledge.service.interface';
 import { KnowledgeResponseDto } from '../../../domain/dtos/knowledge-response.dto';
+import { DomainKnowledgeService } from '../../../domain/services/knowledge.service';
 
 @Injectable()
 export class FindKnowledgeUseCase {
-    constructor(private readonly knowledgeService: IKnowledgeService) { }
+    constructor(private readonly knowledgeService: DomainKnowledgeService) { }
 
     async findById(id: string): Promise<KnowledgeResponseDto> {
         return this.knowledgeService.findById(id);
