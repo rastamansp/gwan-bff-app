@@ -10,12 +10,16 @@ export class Email extends ValueObject<string> {
         if (!this.isValid(email)) {
             throw new InvalidEmailError(email);
         }
-        return new Email(email.toLowerCase().trim());
+        return new Email(this.normalize(email));
     }
 
     private static isValid(email: string): boolean {
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
+    }
+
+    private static normalize(email: string): string {
+        return email.toLowerCase().trim();
     }
 
     public getValue(): string {

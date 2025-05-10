@@ -643,3 +643,322 @@ O processamento das bases de conhecimento é feito de forma assíncrona através
 2. Atualiza o status da base para `processing`
 3. Um worker processa o arquivo em background
 4. O status é atualizado para `completed` ou `failed` após o processamento 
+
+## Design Patterns Utilizados
+
+### Clean Architecture
+O projeto segue os princípios da Clean Architecture, dividindo a aplicação em camadas bem definidas:
+
+- **Domain Layer**: Contém as regras de negócio, entidades e value objects
+- **Application Layer**: Implementa os casos de uso que orquestram as operações
+- **Infrastructure Layer**: Fornece implementações concretas (repositórios, serviços externos)
+- **Presentation Layer**: Gerencia a interface com o usuário (controllers, DTOs)
+
+### Value Objects
+Utilizamos Value Objects para encapsular regras de validação e garantir a integridade dos dados:
+
+- `Email`: Validação de formato e normalização de emails
+- `Password`: Validação de complexidade de senhas
+- `VerificationCode`: Geração e validação de códigos de verificação
+
+### Repository Pattern
+Implementado para abstrair o acesso aos dados:
+
+- `IUserRepository`: Interface que define as operações de persistência
+- `PrismaUserRepository`: Implementação concreta usando Prisma ORM
+
+### Use Case Pattern
+Cada operação de negócio é encapsulada em um caso de uso:
+
+- `RegisterUseCase`: Registro de novos usuários
+- `LoginUseCase`: Autenticação de usuários
+- `VerifyCodeUseCase`: Verificação de códigos de ativação
+- `VerifyLoginCodeUseCase`: Verificação de códigos de login
+
+### Factory Pattern
+Utilizado para criar instâncias de objetos complexos:
+
+- `UserFactory`: Criação de usuários com validações
+- `VerificationCodeFactory`: Geração de códigos de verificação
+
+### Strategy Pattern
+Implementado para diferentes estratégias de notificação:
+
+- `EmailNotificationStrategy`: Envio de notificações por email
+- `WhatsAppNotificationStrategy`: Envio de notificações por WhatsApp
+
+## Módulo de Autenticação
+
+O módulo de autenticação (`src/modules/auth`) foi recentemente atualizado para seguir estritamente os princípios da Clean Architecture. As principais mudanças incluem:
+
+### Reorganização da Estrutura
+```
+src/modules/auth/
+├── application/
+│   └── use-cases/
+│       ├── register.use-case.ts
+│       ├── login.use-case.ts
+│       ├── verify-code.use-case.ts
+│       └── verify-login-code.use-case.ts
+├── domain/
+│   ├── entities/
+│   │   └── user.entity.ts
+│   ├── errors/
+│   │   ├── invalid-email.error.ts
+│   │   └── invalid-password.error.ts
+│   ├── services/
+│   │   └── notification.service.ts
+│   └── value-objects/
+│       ├── email.value-object.ts
+│       └── password.value-object.ts
+├── infrastructure/
+│   ├── controllers/
+│   └── repositories/
+└── presentation/
+    └── controllers/
+        └── auth.controller.ts
+```
+
+### Melhorias Implementadas
+
+1. **Value Objects**:
+   - Implementação de `Email` e `Password` como value objects
+   - Validações encapsuladas e imutáveis
+   - Regras de negócio centralizadas
+
+2. **Casos de Uso**:
+   - Movidos para a camada `application`
+   - Melhor separação de responsabilidades
+   - Testes mais focados e isolados
+
+3. **Documentação**:
+   - Adição de decoradores Swagger
+   - Documentação clara dos endpoints
+   - Descrição dos códigos de status HTTP
+
+4. **Tratamento de Erros**:
+   - Erros específicos do domínio
+   - Mensagens de erro mais descritivas
+   - Melhor rastreabilidade
+
+5. **Logging**:
+   - Logs estruturados
+   - Rastreamento de operações
+   - Facilidade de debug
+
+### Exemplo de Uso
+
+```typescript
+// Exemplo de uso do value object Email
+const email = Email.create('user@example.com');
+
+// Exemplo de uso do value object Password
+const password = Password.create('StrongP@ss123');
+
+// Exemplo de caso de uso
+@Injectable()
+export class RegisterUseCase {
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly notificationService: INotificationService,
+  ) {}
+
+  async execute(data: RegisterDto): Promise<User> {
+    const email = Email.create(data.email);
+    const password = Password.create(data.password);
+    
+    const user = await this.userRepository.create({
+      email: email.getValue(),
+      password: password.getValue(),
+      // ... outros dados
+    });
+
+    await this.notificationService.sendVerificationCode(user);
+    return user;
+  }
+}
+```
+
+### Benefícios das Atualizações
+
+1. **Manutenibilidade**:
+   - Código mais organizado e coeso
+   - Responsabilidades bem definidas
+   - Facilidade de manutenção
+
+2. **Testabilidade**:
+   - Testes mais isolados
+   - Mocks mais simples
+   - Cobertura de código melhorada
+
+3. **Escalabilidade**:
+   - Fácil adição de novos casos de uso
+   - Implementações alternativas simplificadas
+   - Baixo acoplamento entre camadas
+
+4. **Segurança**:
+   - Validações centralizadas
+   - Regras de negócio protegidas
+   - Dados imutáveis quando necessário
+
+## 📚 Documentação da API
+
+A documentação completa da API está disponível através do Swagger UI quando a aplicação está em execução:
+
+```
+http://localhost:3000/api/docs
+```
+
+### Autenticação
+
+Todos os endpoints (exceto `/auth/*`) requerem autenticação via JWT. O token deve ser enviado no header:
+
+```
+Authorization: Bearer <token>
+```
+
+### Endpoints Principais
+
+#### Autenticação
+- `POST /auth/register` - Registro de novo usuário
+- `POST /auth/login` - Login com email
+- `POST /auth/verify-code` - Verificação de código de ativação
+- `POST /auth/verify-login-code` - Verificação de código de login
+
+#### Dataset
+- `GET /user/dataset/list` - Lista arquivos do usuário
+- `POST /user/dataset/upload` - Upload de arquivo PDF
+- `DELETE /user/dataset/:id` - Remove arquivo
+
+#### Knowledge Base
+- `POST /user/knowledge` - Cria base de conhecimento
+- `GET /user/knowledge` - Lista bases de conhecimento
+- `GET /user/knowledge/:id` - Obtém base específica
+- `DELETE /user/knowledge/:id` - Remove base de conhecimento
+
+## 🧪 Testes
+
+O projeto utiliza diferentes tipos de testes para garantir a qualidade do código:
+
+### Testes Unitários
+```bash
+npm run test
+```
+
+### Testes E2E
+```bash
+npm run test:e2e
+```
+
+### Cobertura de Testes
+```bash
+npm run test:cov
+```
+
+### Testes de Integração
+```bash
+npm run test:integration
+```
+
+## 📊 Monitoramento
+
+O sistema inclui monitoramento através de:
+
+1. **Logs Estruturados**
+   - Níveis: error, warn, info, debug
+   - Formato JSON para fácil parsing
+   - Rotação de logs
+
+2. **Métricas**
+   - Tempo de resposta
+   - Taxa de erros
+   - Uso de recursos
+
+3. **Health Checks**
+   - Status da aplicação
+   - Conexões com serviços
+   - Uso de memória
+
+## 🔄 CI/CD
+
+O projeto utiliza GitHub Actions para CI/CD:
+
+1. **Build**
+   - Instalação de dependências
+   - Compilação TypeScript
+   - Testes unitários
+
+2. **Test**
+   - Testes E2E
+   - Testes de integração
+   - Análise de cobertura
+
+3. **Deploy**
+   - Build da imagem Docker
+   - Push para registry
+   - Deploy em ambiente
+
+## 📈 Roadmap
+
+### Fase 1 - MVP
+- [x] Autenticação básica
+- [x] Upload de arquivos
+- [x] Processamento de PDFs
+- [x] API REST
+
+### Fase 2 - Melhorias
+- [ ] Cache distribuído
+- [ ] Sistema de backup
+- [ ] Compressão de arquivos
+- [ ] Versionamento de bases
+
+### Fase 3 - Escalabilidade
+- [ ] Load balancing
+- [ ] Sharding de dados
+- [ ] CDN para arquivos
+- [ ] Monitoramento avançado
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+### Guia de Contribuição
+
+1. **Código**
+   - Siga os padrões de código
+   - Adicione testes
+   - Documente mudanças
+
+2. **Commits**
+   - Use mensagens claras
+   - Referencie issues
+   - Siga o padrão conventional commits
+
+3. **Pull Requests**
+   - Descreva as mudanças
+   - Inclua testes
+   - Atualize documentação
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👥 Autores
+
+- **GWAN Team** - *Desenvolvimento* - [gwan](https://github.com/gwan)
+
+## 🙏 Agradecimentos
+
+- NestJS Team
+- MongoDB Team
+- RabbitMQ Team
+- MinIO Team
+- Todos os contribuidores
+
+---
+
+Made with ❤️ by GWAN Team 

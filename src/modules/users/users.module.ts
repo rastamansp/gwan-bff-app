@@ -1,15 +1,31 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './domain/schemas/user.schema';
-import { ProfileService } from './domain/services/profile.service';
-import { ProfileController } from './infrastructure/controllers/profile.controller';
+import { UsersController } from './presentation/controllers/users.controller';
+import { GetUserUseCase } from './application/use-cases/get-user.use-case';
+import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
+import { ListUsersUseCase } from './application/use-cases/list-users.use-case';
+import { MongoDBUserRepository } from './infrastructure/repositories/mongodb-user.repository';
+import { IUserRepository } from './domain/repositories/user.repository.interface';
+import { UserSchema, UserSchemaFactory } from './infrastructure/schemas/user.schema';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
     imports: [
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+        MongooseModule.forFeature([
+            { name: 'User', schema: UserSchemaFactory },
+        ]),
+        AuthModule,
     ],
-    controllers: [ProfileController],
-    providers: [ProfileService],
-    exports: [ProfileService],
+    controllers: [UsersController],
+    providers: [
+        GetUserUseCase,
+        UpdateUserUseCase,
+        ListUsersUseCase,
+        {
+            provide: 'IUserRepository',
+            useClass: MongoDBUserRepository,
+        },
+    ],
+    exports: ['IUserRepository'],
 })
 export class UsersModule { } 
