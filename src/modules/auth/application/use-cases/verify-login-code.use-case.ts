@@ -4,11 +4,11 @@ import {
     BadRequestException,
     Logger,
 } from "@nestjs/common";
-import { User } from "../entities/user.entity";
-import { UserService } from "../services/user.service";
+import { User } from "../../domain/entities/user.entity";
+import { UserService } from "../../domain/services/user.service";
 import { JwtService } from "@nestjs/jwt";
 import { BaseUseCase } from "../../../../core/domain/use-cases/base.use-case";
-import { AuthResponseDto, UserResponseDto } from "../dtos/auth.dtos";
+import { AuthResponseDto, UserResponseDto } from "../../domain/dtos/auth.dtos";
 
 @Injectable()
 export class VerifyLoginCodeUseCase extends BaseUseCase<User> {
@@ -76,22 +76,31 @@ export class VerifyLoginCodeUseCase extends BaseUseCase<User> {
                 });
             }
 
-            // Limpa o código de login
+            // Atualiza o último login e limpa o código
             this.logger.debug(
-                `[VerifyLoginCode] Limpando código de login para usuário: ${user.id}`,
+                `[VerifyLoginCode] Atualizando último login para usuário: ${user.id}`,
             );
-            await this.userService.clearLoginCode(user.id);
+            const updatedUser = await this.userService.updateLastLogin(user.id);
+            this.logger.debug(
+                `[VerifyLoginCode] Último login atualizado com sucesso: ${updatedUser.id}`,
+            );
 
             // Gera o token JWT
-            const accessToken = this.generateToken(user);
+            this.logger.debug(
+                `[VerifyLoginCode] Gerando token JWT para usuário: ${updatedUser.id}`,
+            );
+            const accessToken = this.generateToken(updatedUser);
+            this.logger.debug(
+                `[VerifyLoginCode] Token JWT gerado com sucesso para usuário: ${updatedUser.id}`,
+            );
 
             this.logger.log(
-                `[VerifyLoginCode] Login concluído com sucesso para: ${user.email}`,
+                `[VerifyLoginCode] Processo de verificação concluído com sucesso para: ${updatedUser.email}`,
             );
-            return this.createAuthResponse(user, accessToken);
+            return this.createAuthResponse(updatedUser, accessToken);
         } catch (error) {
             this.logger.error(
-                `[VerifyLoginCode] Erro durante a verificação do código: ${error.message}`,
+                `[VerifyLoginCode] Erro durante a verificação: ${error.message}`,
                 error.stack,
             );
             throw error;
