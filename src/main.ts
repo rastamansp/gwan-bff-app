@@ -1,10 +1,12 @@
 import { NestFactory } from "@nestjs/core";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { ValidationPipe } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { AppModule } from "./app.module";
 import * as mongoose from "mongoose";
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
+import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
+import { NotFoundInterceptor } from "./shared/interceptors/not-found.interceptor";
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap");
@@ -40,25 +42,18 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
 
     // Configuração do CORS
-    app.enableCors({
-      origin: [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "https://bff.gwan.com.br",
-        "https://www.bff.gwan.com.br",
-        "https://admin.gwan.com.br",
-        "https://www.admin.gwan.com.br",
-      ],
-      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-      credentials: true,
-    });
+    app.enableCors(configService.get('cors'));
 
     // Configuração do Swagger
+    const swaggerConfig = configService.get('swagger') || {
+      title: 'GWAN API',
+      description: 'API do sistema GWAN',
+      version: '1.0'
+    };
     const config = new DocumentBuilder()
-      .setTitle("GWAN API")
-      .setDescription("API do sistema GWAN")
-      .setVersion("1.0")
+      .setTitle(swaggerConfig.title)
+      .setDescription(swaggerConfig.description)
+      .setVersion(swaggerConfig.version)
       .addBearerAuth(
         {
           type: "http",
@@ -75,9 +70,16 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup("api", app, document);
 
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }));
 
-    const port = configService.get<number>("PORT") || 3000;
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalInterceptors(new LoggingInterceptor(), new NotFoundInterceptor());
+
+    const port = configService.get<number>("port") || 3000;
     await app.listen(port);
     logger.log(`Application is running on: http://localhost:${port}`);
   } catch (error) {

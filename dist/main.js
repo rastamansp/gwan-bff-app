@@ -5,10 +5,12 @@ const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const app_module_1 = require("./app.module");
 const mongoose = require("mongoose");
-const common_2 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const http_exception_filter_1 = require("./shared/filters/http-exception.filter");
+const logging_interceptor_1 = require("./shared/interceptors/logging.interceptor");
+const not_found_interceptor_1 = require("./shared/interceptors/not-found.interceptor");
 async function bootstrap() {
-    const logger = new common_2.Logger("Bootstrap");
+    const logger = new common_1.Logger("Bootstrap");
     try {
         mongoose.connection.on("connected", async () => {
             logger.log("[MongoDB] Conexão estabelecida com sucesso");
@@ -30,23 +32,16 @@ async function bootstrap() {
         const app = await core_1.NestFactory.create(app_module_1.AppModule);
         const configService = app.get(config_1.ConfigService);
         app.setGlobalPrefix('api');
-        app.enableCors({
-            origin: [
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "https://bff.gwan.com.br",
-                "https://www.bff.gwan.com.br",
-                "https://admin.gwan.com.br",
-                "https://www.admin.gwan.com.br",
-            ],
-            methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-            allowedHeaders: ["Content-Type", "Authorization"],
-            credentials: true,
-        });
+        app.enableCors(configService.get('cors'));
+        const swaggerConfig = configService.get('swagger') || {
+            title: 'GWAN API',
+            description: 'API do sistema GWAN',
+            version: '1.0'
+        };
         const config = new swagger_1.DocumentBuilder()
-            .setTitle("GWAN API")
-            .setDescription("API do sistema GWAN")
-            .setVersion("1.0")
+            .setTitle(swaggerConfig.title)
+            .setDescription(swaggerConfig.description)
+            .setVersion(swaggerConfig.version)
             .addBearerAuth({
             type: "http",
             scheme: "bearer",
@@ -58,8 +53,14 @@ async function bootstrap() {
             .build();
         const document = swagger_1.SwaggerModule.createDocument(app, config);
         swagger_1.SwaggerModule.setup("api", app, document);
-        app.useGlobalPipes(new common_1.ValidationPipe());
-        const port = configService.get("PORT") || 3000;
+        app.useGlobalPipes(new common_1.ValidationPipe({
+            whitelist: true,
+            transform: true,
+            forbidNonWhitelisted: true,
+        }));
+        app.useGlobalFilters(new http_exception_filter_1.HttpExceptionFilter());
+        app.useGlobalInterceptors(new logging_interceptor_1.LoggingInterceptor(), new not_found_interceptor_1.NotFoundInterceptor());
+        const port = configService.get("port") || 3000;
         await app.listen(port);
         logger.log(`Application is running on: http://localhost:${port}`);
     }

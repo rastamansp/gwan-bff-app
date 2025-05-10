@@ -55,7 +55,7 @@ export class RegisterUseCase extends BaseUseCase<User> {
       this.logger.debug(
         `[Register] Verificando se WhatsApp já está em uso: ${data.whatsapp}`,
       );
-      const existingWhatsapp = await this.userService.findByWhatsapp(
+      const existingWhatsapp = await this.userService.findByWhatsApp(
         data.whatsapp,
       );
       if (existingWhatsapp) {

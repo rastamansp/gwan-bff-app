@@ -1,49 +1,41 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { JwtModule } from "@nestjs/jwt";
+import { ConfigModule } from "@nestjs/config";
 import { AuthController } from "./infrastructure/controllers/auth.controller";
-import { UserService } from "./domain/services/user.service";
-import { RegisterUseCase } from "./domain/use-cases/register.use-case";
-import { VerifyCodeUseCase } from "./domain/use-cases/verify-code.use-case";
-import { LoginUseCase } from "./domain/use-cases/login.use-case";
-import { VerifyLoginUseCase } from "./domain/use-cases/verify-login.use-case";
-import { UserRepositoryImpl } from "./infrastructure/repositories/user.repository.impl";
 import { User, UserSchema } from "./domain/entities/user.entity";
+import { MongooseUserRepository } from "./infrastructure/repositories/mongoose-user.repository";
+import { RegisterUseCase } from "./domain/use-cases/register.use-case";
+import { LoginUseCase } from "./domain/use-cases/login.use-case";
+import { VerifyCodeUseCase } from "./domain/use-cases/verify-code.use-case";
+import { VerifyLoginCodeUseCase } from "./domain/use-cases/verify-login-code.use-case";
+import { UserService } from "./domain/services/user.service";
 import { NotificationService } from "./domain/services/notification.service";
 import { RabbitMQService } from "./domain/services/rabbitmq.service";
-import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
-import { JwtAuthGuard } from "./infrastructure/guards";
-import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    ConfigModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "gwan-secret-key-production-2024",
-      signOptions: { expiresIn: process.env.JWT_EXPIRATION || "1d" },
+      secret: process.env.JWT_SECRET || "your-secret-key",
+      signOptions: { expiresIn: "1d" },
     }),
   ],
   controllers: [AuthController],
   providers: [
-    UserService,
     RegisterUseCase,
-    VerifyCodeUseCase,
     LoginUseCase,
-    VerifyLoginUseCase,
-    UserRepositoryImpl,
+    VerifyCodeUseCase,
+    VerifyLoginCodeUseCase,
     NotificationService,
     RabbitMQService,
-    JwtStrategy,
-    JwtAuthGuard,
+    UserService,
     {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    {
-      provide: "IUserRepository",
-      useClass: UserRepositoryImpl,
+      provide: 'IUserRepository',
+      useClass: MongooseUserRepository,
     },
   ],
-  exports: [UserService, JwtStrategy],
+  exports: [UserService],
 })
 export class AuthModule { }

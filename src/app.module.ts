@@ -11,6 +11,7 @@ import { DatasetModule } from "./modules/dataset/dataset.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { RabbitMQModule } from './modules/rabbitmq/rabbitmq.module';
 import { UsersModule } from "./modules/users/users.module";
+import configuration from './config/configuration';
 
 @Module({
   imports: [
@@ -19,12 +20,12 @@ import { UsersModule } from "./modules/users/users.module";
       envFilePath: ".env",
       expandVariables: true,
       cache: true,
+      load: [configuration],
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const uri =
-          configService.get("MONGODB_URI") ||
+        const uri = configService.get("database.uri") ||
           "mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin";
         return { uri };
       },

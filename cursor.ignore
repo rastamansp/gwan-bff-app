@@ -4,7 +4,7 @@ dist/
 build/
 
 # Arquivos de ambiente
-.env
+#.env
 .env.*
 !.env.example
 
