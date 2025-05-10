@@ -23,6 +23,8 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     const request = context.switchToHttp().getRequest();
     const path = request.path;
 
+    this.logger.debug(`[Auth] Headers recebidos:`, request.headers);
+
     // Verifica se a rota é pública
     if (this.publicRoutes.includes(path)) {
       this.logger.debug(`[Auth] Rota pública acessada: ${request.method} ${path}`);
@@ -33,7 +35,10 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
       `[Auth] Verificando autenticação para rota: ${request.method} ${path}`,
     );
 
-    const authHeader = request.headers.authorization;
+    // Verifica tanto 'authorization' quanto 'Authorization'
+    const authHeader = request.headers.authorization || request.headers.Authorization;
+    this.logger.debug(`[Auth] Header de autorização: ${authHeader}`);
+
     if (!authHeader) {
       this.logger.warn("[Auth] Header de autorização não encontrado");
       return false;
@@ -45,6 +50,9 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
       );
       return false;
     }
+
+    const token = authHeader.split(" ")[1];
+    this.logger.debug(`[Auth] Token JWT: ${token}`);
 
     return super.canActivate(context);
   }

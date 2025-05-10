@@ -11,6 +11,7 @@ import { DatasetModule } from "./modules/dataset/dataset.module";
 import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { RabbitMQModule } from './modules/rabbitmq/rabbitmq.module';
 import { UsersModule } from "./modules/users/users.module";
+import { ProfileModule } from './modules/profile/profile.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -38,7 +39,8 @@ import configuration from './config/configuration';
     DatasetModule,
     KnowledgeModule,
     RabbitMQModule,
-    UsersModule
+    UsersModule,
+    ProfileModule
   ],
   controllers: [AppController],
   providers: [AppService],

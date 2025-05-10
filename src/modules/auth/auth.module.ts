@@ -12,13 +12,17 @@ import { VerifyLoginCodeUseCase } from "./application/use-cases/verify-login-cod
 import { UserService } from "./domain/services/user.service";
 import { NotificationService } from "./domain/services/notification.service";
 import { RabbitMQService } from "./domain/services/rabbitmq.service";
+import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
+import { JwtAuthGuard } from "./infrastructure/guards/jwt-auth.guard";
+
+const JWT_SECRET = process.env.JWT_SECRET || "gwan-secret-key-production-2024";
 
 @Module({
   imports: [
     ConfigModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "your-secret-key",
+      secret: JWT_SECRET,
       signOptions: { expiresIn: "1d" },
     }),
   ],
@@ -31,11 +35,13 @@ import { RabbitMQService } from "./domain/services/rabbitmq.service";
     NotificationService,
     RabbitMQService,
     UserService,
+    JwtStrategy,
+    JwtAuthGuard,
     {
       provide: 'IUserRepository',
       useClass: MongooseUserRepository,
     },
   ],
-  exports: [UserService],
+  exports: [UserService, JwtStrategy, JwtAuthGuard],
 })
 export class AuthModule { }

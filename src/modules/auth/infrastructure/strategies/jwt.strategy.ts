@@ -3,6 +3,8 @@ import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 
+const JWT_SECRET = process.env.JWT_SECRET || "gwan-secret-key-production-2024";
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
@@ -11,8 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        configService.get("JWT_SECRET") || "gwan-secret-key-production-2024",
+      secretOrKey: JWT_SECRET,
     });
     this.logger.log("[JWT] Estratégia JWT inicializada");
   }
