@@ -13,6 +13,7 @@ import { RabbitMQModule } from './modules/rabbitmq/rabbitmq.module';
 import { UsersModule } from "./modules/users/users.module";
 import { ProfileModule } from './modules/profile/profile.module';
 import configuration from './config/configuration';
+import { ChatbotsModule } from './modules/chatbots/chatbots.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import configuration from './config/configuration';
     KnowledgeModule,
     RabbitMQModule,
     UsersModule,
-    ProfileModule
+    ProfileModule,
+    ChatbotsModule
   ],
   controllers: [AppController],
   providers: [AppService],
