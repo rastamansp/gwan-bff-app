@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { IUserRepository } from '../../domain/repositories/user.repository.interface';
 import { User } from '../../domain/entities/user.entity';
 import { UpdateProfileDto } from '../dtos/update-profile.dto';
@@ -14,7 +14,7 @@ export class UpdateProfileUseCase {
     async execute(userId: string, data: UpdateProfileDto): Promise<User> {
         const user = await this.userRepository.findById(userId);
         if (!user) {
-            throw new Error('User not found');
+            throw new NotFoundException('Usuário não encontrado');
         }
 
         // Atualiza apenas os campos permitidos
@@ -25,6 +25,10 @@ export class UpdateProfileUseCase {
                 obj[key] = data[key];
                 return obj;
             }, {});
+
+        if (Object.keys(updateData).length === 0) {
+            throw new BadRequestException('Nenhum campo válido para atualização');
+        }
 
         return this.userRepository.updateProfile(userId, updateData);
     }

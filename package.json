@@ -22,7 +22,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:cucumber": "cucumber-js --require-module ts-node/register --require src/tests/support/cucumber.config.ts --require src/tests/steps/**/*.ts --require src/tests/support/**/*.ts --format @cucumber/pretty-formatter",
-    "test:cucumber:watch": "cross-env NODE_ENV=test cucumber-js --watch"
+    "test:cucumber:watch": "cross-env NODE_ENV=test cucumber-js --watch",
+    "test:bdd": "cucumber-js",
+    "test:bdd:watch": "cucumber-js --watch"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

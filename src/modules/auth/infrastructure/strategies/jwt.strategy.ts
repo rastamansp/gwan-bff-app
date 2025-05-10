@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
+import { UserService } from "../../domain/services/user.service";
 
 const JWT_SECRET = process.env.JWT_SECRET || "gwan-secret-key-production-2024";
 
@@ -9,7 +10,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "gwan-secret-key-production-2024";
 export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private userService: UserService
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -26,11 +30,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error("Token inválido");
     }
 
-    const user = {
-      id: payload.sub,
-      email: payload.email,
-      name: payload.name,
-    };
+    const user = await this.userService.findById(payload.sub);
+    if (!user) {
+      this.logger.warn(`[JWT] Usuário não encontrado: ${payload.sub}`);
+      throw new Error("Usuário não encontrado");
+    }
 
     this.logger.debug(`[JWT] Usuário validado: ${user.email}`);
     return user;
