@@ -17,9 +17,10 @@ Backend for Frontend application for GWAN, built with NestJS.
 
 ## 📋 Pré-requisitos
 
-- Node.js (v18 ou superior)
-- MongoDB
-- RabbitMQ
+- Node.js (v20 ou superior)
+- MongoDB (v6 ou superior)
+- RabbitMQ (v3.12 ou superior)
+- MinIO (v8 ou superior)
 - SMTP Server (ou serviço de email)
 
 ## 🔧 Instalação
@@ -48,15 +49,16 @@ O arquivo `.env` deve conter as seguintes variáveis:
 ```env
 # Server Configuration
 PORT=3000
-NODE_ENV=development
+NODE_ENV=production
 API_PREFIX=api/v1
 TZ=America/Sao_Paulo
 
 # MongoDB Configuration
-MONGODB_URI=mongodb://user:password@host:port/database
+MONGODB_URI=mongodb://user:password@host:port/database?authSource=admin
 
 # RabbitMQ Configuration
-RABBITMQ_URI=amqp://user:password@host
+RABBITMQ_URL=amqp://user:password@host:port
+RABBITMQ_QUEUE=notifications
 
 # SMTP Configuration
 SMTP_HOST=smtp.example.com
@@ -78,11 +80,11 @@ WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
 WHATSAPP_BUSINESS_ACCOUNT_ID=your-business-account-id
 
 # CORS Configuration
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
+ALLOWED_ORIGINS=https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
 
 # MinIO Configuration
 MINIO_ENDPOINT=minio.gwan.com.br
-MINIO_PORT=9000
+MINIO_PORT=443
 MINIO_USE_SSL=true
 MINIO_ACCESS_KEY=your-access-key
 MINIO_SECRET_KEY=your-secret-key
@@ -355,24 +357,27 @@ O serviço de arquivos utiliza o MinIO como storage para armazenamento de datase
 
 ### Características
 - Armazenamento de arquivos PDF
-- Limite de 5MB por arquivo
+- Limite de 20MB por arquivo
 - URLs temporárias válidas por 24 horas
 - Bucket padrão: `datasets`
+- SSL/TLS habilitado por padrão em produção
 
 ### Configuração MinIO
 O serviço requer as seguintes variáveis de ambiente:
 ```env
 MINIO_ENDPOINT=minio.gwan.com.br
-MINIO_PORT=9000
+MINIO_PORT=443
 MINIO_USE_SSL=true
 MINIO_ACCESS_KEY=your-access-key
 MINIO_SECRET_KEY=your-secret-key
+MINIO_BUCKET=datasets
 ```
 
 ### Pré-requisitos
 - Bucket `datasets` deve ser criado manualmente no console do MinIO
 - Configurar as políticas de acesso apropriadas no bucket
-- Garantir que o MinIO está acessível no endpoint configurado
+- Garantir que o MinIO está acessível via HTTPS em produção
+- Configurar certificados SSL válidos para o endpoint MinIO
 
 ### Uso
 1. **Listar Arquivos**
@@ -409,20 +414,71 @@ Os logs são gerados em diferentes níveis:
 
 ## 🚀 Deploy
 
-O projeto pode ser deployado usando Docker:
+O projeto pode ser deployado usando Docker em produção:
 
 ```bash
 # Build da imagem
-docker build -t gwan-bff-app .
+docker build -t gwan-bff-app:latest .
 
 # Execução do container
-docker run -p 3000:3000 --env-file .env gwan-bff-app
+docker run -d \
+  --name gwan-bff-app \
+  --restart unless-stopped \
+  --network gwan \
+  -p 3000:3000 \
+  --env-file .env.production \
+  gwan-bff-app:latest
 ```
 
-Para ambiente de desenvolvimento, use o docker-compose:
+Para ambiente de produção, use o docker-compose:
 
 ```bash
 docker-compose up -d
+```
+
+### Configurações de Produção
+
+1. **Segurança**
+   - Use HTTPS em todas as conexões
+   - Configure certificados SSL válidos
+   - Mantenha as chaves JWT seguras
+   - Use senhas fortes para todos os serviços
+   - Configure CORS adequadamente
+
+2. **Monitoramento**
+   - Configure logs estruturados
+   - Implemente health checks
+   - Monitore uso de recursos
+   - Configure alertas
+
+3. **Backup**
+   - Configure backup regular do MongoDB
+   - Mantenha backup dos arquivos do MinIO
+   - Documente procedimentos de recuperação
+
+4. **Escalabilidade**
+   - Configure limites de recursos no Docker
+   - Implemente rate limiting
+   - Configure conexões pool para serviços externos
+
+### Variáveis de Ambiente Críticas
+
+Certifique-se de que as seguintes variáveis estejam configuradas corretamente em produção:
+
+```env
+# Segurança
+NODE_ENV=production
+JWT_SECRET=<chave-secreta-forte>
+MINIO_USE_SSL=true
+
+# Performance
+RABBITMQ_PREFETCH=1
+SMTP_POOL_MAX=5
+MONGODB_POOL_SIZE=10
+
+# Monitoramento
+LOG_LEVEL=info
+ENABLE_HEALTH_CHECKS=true
 ```
 
 ## 🔧 Troubleshooting
@@ -465,6 +521,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - NestJS Team
 - MongoDB Team
 - RabbitMQ Team
+- MinIO Team
+- Todos os contribuidores
 
 ## Estrutura de Armazenamento de Arquivos
 
@@ -672,7 +730,7 @@ Cada operação de negócio é encapsulada em um caso de uso:
 
 - `RegisterUseCase`: Registro de novos usuários
 - `LoginUseCase`: Autenticação de usuários
-- `VerifyCodeUseCase`: Verificação de códigos de ativação
+- `VerifyCodeUseCase`: Verificação de códigos de verificação
 - `VerifyLoginCodeUseCase`: Verificação de códigos de login
 
 ### Factory Pattern
