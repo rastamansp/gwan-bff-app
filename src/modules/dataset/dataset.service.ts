@@ -3,6 +3,7 @@ import {
   Logger,
   InternalServerErrorException,
   Inject,
+  BadRequestException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Minio from "minio";
@@ -122,13 +123,15 @@ export class DatasetService {
     }
   }
 
-  async uploadFile(file: Multer['File'], userId: string, knowledgeBaseId?: string): Promise<FileUploadResult> {
-    this.logger.debug(`[UploadFile] Iniciando upload para usuário: ${userId}`);
+  async uploadFile(file: Multer['File'], userId: string, knowledgeBaseId: string): Promise<FileUploadResult> {
+    if (!knowledgeBaseId) {
+      throw new BadRequestException('knowledgeBaseId é obrigatório para upload de arquivos');
+    }
 
-    // Cria o nome do objeto incluindo o diretório do usuário e knowledgeBaseId se fornecido
-    const objectName = knowledgeBaseId
-      ? `${userId}/${knowledgeBaseId}/${Date.now()}-${file.originalname}`
-      : `${userId}/${Date.now()}-${file.originalname}`;
+    this.logger.debug(`[UploadFile] Iniciando upload para usuário: ${userId} na base de conhecimento: ${knowledgeBaseId}`);
+
+    // Cria o nome do objeto incluindo o diretório do usuário e knowledgeBaseId
+    const objectName = `${userId}/${knowledgeBaseId}/${Date.now()}-${file.originalname}`;
 
     // Faz upload do arquivo
     await this.storageService.uploadFile(file, objectName);
@@ -145,7 +148,7 @@ export class DatasetService {
       mimeType: file.mimetype,
       url,
       bucketName: 'datasets',
-      knowledgeBaseId: knowledgeBaseId ? new Types.ObjectId(knowledgeBaseId) : undefined,
+      knowledgeBaseId: new Types.ObjectId(knowledgeBaseId),
       status: 'available' as FileStatus,
     });
 

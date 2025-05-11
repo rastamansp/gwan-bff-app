@@ -11,6 +11,7 @@ import { CreateKnowledgeBaseDto } from "./dto/create-knowledge-base.dto";
 import { UpdateKnowledgeBaseDto } from "./dto/update-knowledge-base.dto";
 import { DatasetService } from "../dataset/dataset.service";
 import { RabbitMQService } from "./infrastructure/services/rabbitmq.service";
+import { StartProcessUseCase } from "./application/use-cases/start-process/start-process.usecase";
 
 @Injectable()
 export class KnowledgeService {
@@ -21,6 +22,7 @@ export class KnowledgeService {
         private knowledgeBaseModel: Model<KnowledgeBase>,
         private readonly datasetService: DatasetService,
         private readonly rabbitMQService: RabbitMQService,
+        private readonly startProcessUseCase: StartProcessUseCase,
     ) { }
 
     async createKnowledgeBase(
@@ -89,29 +91,8 @@ export class KnowledgeService {
         }
     }
 
-    async startProcess(id: string, userId: string): Promise<KnowledgeBase> {
-        const knowledgeBase = await this.getKnowledgeBaseById(id, userId);
-
-        if (knowledgeBase.status === "processing") {
-            throw new BadRequestException(
-                "A base de conhecimento já está em processamento",
-            );
-        }
-
-        // Atualiza o status para processing
-        knowledgeBase.status = "processing";
-        await knowledgeBase.save();
-
-        // Envia mensagem para a fila de processamento
-        await this.rabbitMQService.sendMessage({
-            knowledgeBaseId: id,
-            userId: userId,
-        });
-
-        this.logger.log(
-            `Iniciado processamento da base de conhecimento ${id} para o usuário ${userId}`,
-        );
-
-        return knowledgeBase;
+    async startProcess(id: string, userId: string, bucketFileId: string): Promise<KnowledgeBase> {
+        await this.startProcessUseCase.execute(id, userId, bucketFileId);
+        return this.getKnowledgeBaseById(id, userId);
     }
 }

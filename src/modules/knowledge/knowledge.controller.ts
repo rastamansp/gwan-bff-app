@@ -177,12 +177,37 @@ export class KnowledgeController {
         return this.knowledgeService.deleteKnowledgeBase(id, req.user.id);
     }
 
-    @Post(":id/start-process")
+    @Post(":knowledgeBaseId/start-process/:bucketFileId")
+    @ApiOperation({
+        summary: "Iniciar processamento de arquivo",
+        description: "Inicia o processamento de um arquivo específico na base de conhecimento",
+    })
+    @ApiParam({ name: "knowledgeBaseId", description: "ID da base de conhecimento" })
+    @ApiParam({ name: "bucketFileId", description: "ID do arquivo a ser processado" })
+    @ApiResponse({
+        status: 200,
+        description: "Processamento iniciado com sucesso",
+        schema: {
+            properties: {
+                _id: { type: "string", example: "507f1f77bcf86cd799439011" },
+                userId: { type: "string", example: "507f1f77bcf86cd799439012" },
+                name: { type: "string", example: "Base de Conhecimento de Marketing" },
+                description: { type: "string", example: "Base de conhecimento contendo informações sobre marketing" },
+                status: { type: "string", example: "processing", enum: ["new", "processing", "completed", "failed"] },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+            },
+        },
+    })
+    @ApiResponse({ status: 400, description: "Base de conhecimento já está em processamento" })
+    @ApiResponse({ status: 401, description: "Não autorizado" })
+    @ApiResponse({ status: 404, description: "Base de conhecimento não encontrada" })
     async startProcess(
-        @Param("id") id: string,
+        @Param("knowledgeBaseId") knowledgeBaseId: string,
+        @Param("bucketFileId") bucketFileId: string,
         @Req() req: AuthenticatedRequest,
     ) {
         const userId = req.user.id;
-        return this.knowledgeService.startProcess(id, userId);
+        return this.knowledgeService.startProcess(knowledgeBaseId, userId, bucketFileId);
     }
 }

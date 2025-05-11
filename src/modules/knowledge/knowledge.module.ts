@@ -14,8 +14,14 @@ import { DomainKnowledgeService } from './domain/services/knowledge.service';
 import { KnowledgeRepository } from './infrastructure/repositories/knowledge.repository';
 import { IKnowledgeRepository } from './domain/interfaces/knowledge.repository.interface';
 import { Knowledge, KnowledgeSchema } from './domain/entities/knowledge.entity';
+import { KnowledgeBaseRepository } from './infrastructure/repositories/knowledge-base.repository';
+import { IKnowledgeBaseRepository } from './domain/interfaces/knowledge-base.repository.interface';
+import { StartProcessUseCase } from './application/use-cases/start-process/start-process.usecase';
+import { IBucketFileRepository } from '../dataset/domain/repositories/bucket-file.repository';
+import { BUCKET_FILE_REPOSITORY } from '../dataset/domain/constants/injection-tokens';
 
 export const KNOWLEDGE_REPOSITORY = 'KNOWLEDGE_REPOSITORY';
+export const KNOWLEDGE_BASE_REPOSITORY = 'KNOWLEDGE_BASE_REPOSITORY';
 
 @Module({
   imports: [
@@ -32,9 +38,14 @@ export const KNOWLEDGE_REPOSITORY = 'KNOWLEDGE_REPOSITORY';
     KnowledgeService,
     RabbitMQService,
     KnowledgeRepository,
+    KnowledgeBaseRepository,
     {
       provide: KNOWLEDGE_REPOSITORY,
       useClass: KnowledgeRepository,
+    },
+    {
+      provide: KNOWLEDGE_BASE_REPOSITORY,
+      useClass: KnowledgeBaseRepository,
     },
     {
       provide: DomainKnowledgeService,
@@ -42,6 +53,17 @@ export const KNOWLEDGE_REPOSITORY = 'KNOWLEDGE_REPOSITORY';
         return new DomainKnowledgeService(repository);
       },
       inject: [KNOWLEDGE_REPOSITORY],
+    },
+    {
+      provide: StartProcessUseCase,
+      useFactory: (
+        repository: IKnowledgeBaseRepository,
+        bucketFileRepository: IBucketFileRepository,
+        rabbitMQService: RabbitMQService
+      ) => {
+        return new StartProcessUseCase(repository, bucketFileRepository, rabbitMQService);
+      },
+      inject: [KNOWLEDGE_BASE_REPOSITORY, BUCKET_FILE_REPOSITORY, RabbitMQService],
     },
   ],
   exports: [KnowledgeService, DomainKnowledgeService],

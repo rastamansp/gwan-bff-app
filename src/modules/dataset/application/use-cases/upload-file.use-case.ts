@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject, BadRequestException } from '@nestjs/common';
 import { Multer } from 'multer';
 import { IStorageService } from '../../domain/services/storage.service.interface';
 import { IBucketFileRepository } from '../../domain/repositories/bucket-file.repository';
@@ -18,13 +18,15 @@ export class UploadFileUseCase {
         private readonly bucketFileRepository: IBucketFileRepository,
     ) { }
 
-    async execute(file: Multer['File'], userId: string, knowledgeBaseId?: string): Promise<FileUploadResult> {
-        this.logger.debug(`[UploadFile] Iniciando upload para usuário: ${userId}`);
+    async execute(file: Multer['File'], userId: string, knowledgeBaseId: string): Promise<FileUploadResult> {
+        if (!knowledgeBaseId) {
+            throw new BadRequestException('knowledgeBaseId é obrigatório para upload de arquivos');
+        }
 
-        // Cria o nome do objeto incluindo o diretório do usuário e knowledgeBaseId se fornecido
-        const objectName = knowledgeBaseId
-            ? `${userId}/${knowledgeBaseId}/${Date.now()}-${file.originalname}`
-            : `${userId}/${Date.now()}-${file.originalname}`;
+        this.logger.debug(`[UploadFile] Iniciando upload para usuário: ${userId} na base de conhecimento: ${knowledgeBaseId}`);
+
+        // Cria o nome do objeto incluindo o diretório do usuário e knowledgeBaseId
+        const objectName = `${userId}/${knowledgeBaseId}/${file.originalname}`;
 
         // Faz upload do arquivo
         await this.storageService.uploadFile(file, objectName);
@@ -41,7 +43,7 @@ export class UploadFileUseCase {
             mimeType: file.mimetype,
             url,
             bucketName: 'datasets',
-            knowledgeBaseId: knowledgeBaseId ? new Types.ObjectId(knowledgeBaseId) : undefined,
+            knowledgeBaseId: new Types.ObjectId(knowledgeBaseId),
             status: 'available' as FileStatus,
         });
 

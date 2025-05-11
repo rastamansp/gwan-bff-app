@@ -16,7 +16,7 @@ import { memoryStorage } from "multer";
 import { Request } from "express";
 import { JwtAuthGuard } from "../auth/infrastructure/guards/jwt-auth.guard";
 import { Multer } from "multer";
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -44,46 +44,11 @@ export class DatasetController {
     return this.datasetService.listFiles(userId);
   }
 
-  @Post("upload")
-  @ApiOperation({ summary: 'Fazer upload de arquivo' })
-  @ApiResponse({ status: 201, description: 'Arquivo enviado com sucesso' })
-  @ApiResponse({ status: 400, description: 'Arquivo inválido' })
-  @ApiResponse({ status: 401, description: 'Não autorizado' })
-  @UseInterceptors(
-    FileInterceptor("file", {
-      storage: memoryStorage(),
-      fileFilter: (req, file, callback) => {
-        if (file.mimetype !== "application/pdf") {
-          return callback(
-            new BadRequestException("Apenas arquivos PDF são permitidos!"),
-            false,
-          );
-        }
-        callback(null, true);
-      },
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
-      },
-    }),
-  )
-  async uploadFile(
-    @UploadedFile() file: Multer["File"],
-    @Req() req: AuthenticatedRequest,
-  ) {
-    if (!file) {
-      throw new BadRequestException("Nenhum arquivo foi enviado");
-    }
-    const userId = req.user.id;
-    if (!userId) {
-      throw new BadRequestException("Usuário não autenticado");
-    }
-    return this.datasetService.uploadFile(file, userId);
-  }
-
   @Post(":knowledgeBaseId/documents")
   @ApiOperation({ summary: 'Fazer upload de arquivo para base de conhecimento' })
+  @ApiParam({ name: 'knowledgeBaseId', description: 'ID da base de conhecimento' })
   @ApiResponse({ status: 201, description: 'Arquivo enviado com sucesso' })
-  @ApiResponse({ status: 400, description: 'Arquivo inválido' })
+  @ApiResponse({ status: 400, description: 'Arquivo inválido ou base de conhecimento não fornecida' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
   @UseInterceptors(
     FileInterceptor("file", {
@@ -102,13 +67,16 @@ export class DatasetController {
       },
     }),
   )
-  async uploadFileToKnowledgeBase(
+  async uploadFile(
     @UploadedFile() file: Multer["File"],
     @Param("knowledgeBaseId") knowledgeBaseId: string,
     @Req() req: AuthenticatedRequest,
   ) {
     if (!file) {
       throw new BadRequestException("Nenhum arquivo foi enviado");
+    }
+    if (!knowledgeBaseId) {
+      throw new BadRequestException("ID da base de conhecimento é obrigatório");
     }
     const userId = req.user.id;
     if (!userId) {
