@@ -14,6 +14,7 @@ import { Types } from 'mongoose';
 import { IStorageService } from './domain/services/storage.service.interface';
 import { FileUploadResult } from './application/dtos/file-result.dto';
 import { STORAGE_SERVICE, BUCKET_FILE_REPOSITORY } from './domain/constants/injection-tokens';
+import { DeleteFileUseCase } from "./application/use-cases/delete-file.use-case";
 
 @Injectable()
 export class DatasetService {
@@ -27,6 +28,7 @@ export class DatasetService {
     private readonly bucketFileRepository: IBucketFileRepository,
     @Inject(STORAGE_SERVICE)
     private readonly storageService: IStorageService,
+    private readonly deleteFileUseCase: DeleteFileUseCase,
   ) {
     // Basic MinIO configuration
     const minioConfig = {
@@ -169,5 +171,9 @@ export class DatasetService {
   async listFiles(userId: string) {
     this.logger.debug(`[ListFiles] Listando arquivos do usuário: ${userId}`);
     return this.bucketFileRepository.findByUserId(userId);
+  }
+
+  async deleteFile(fileId: string, userId: string): Promise<void> {
+    return this.deleteFileUseCase.execute(fileId, userId);
   }
 }

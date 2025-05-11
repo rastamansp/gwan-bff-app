@@ -4,6 +4,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { DatasetController } from "./presentation/controllers/dataset.controller";
 import { UploadFileUseCase } from "./application/use-cases/upload-file.use-case";
 import { ListFilesUseCase } from "./application/use-cases/list-files.use-case";
+import { DeleteFileUseCase } from "./application/use-cases/delete-file.use-case";
 import { MinioStorageService } from "./infrastructure/storage/minio-storage.service";
 import {
   BucketFile,
@@ -34,6 +35,7 @@ import { DatasetService } from "./dataset.service";
     },
     UploadFileUseCase,
     ListFilesUseCase,
+    DeleteFileUseCase,
     MinioStorageService,
     BucketFileRepositoryImpl,
     DatasetService,
@@ -41,6 +43,7 @@ import { DatasetService } from "./dataset.service";
   exports: [
     UploadFileUseCase,
     ListFilesUseCase,
+    DeleteFileUseCase,
     MinioStorageService,
     DatasetService,
     {

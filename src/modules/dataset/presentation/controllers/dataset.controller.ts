@@ -8,18 +8,21 @@ import {
     UseGuards,
     Param,
     BadRequestException,
+    Delete,
+    Request,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { memoryStorage } from 'multer';
-import { Request } from 'express';
+import { Request as ExpressRequest } from 'express';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { Multer } from 'multer';
 import { UploadFileUseCase } from '../../application/use-cases/upload-file.use-case';
 import { ListFilesUseCase } from '../../application/use-cases/list-files.use-case';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { DatasetService } from '../../dataset.service';
 
-interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest extends ExpressRequest {
     user: {
         id: string;
         [key: string]: any;
@@ -34,6 +37,7 @@ export class DatasetController {
     constructor(
         private readonly uploadFileUseCase: UploadFileUseCase,
         private readonly listFilesUseCase: ListFilesUseCase,
+        private readonly datasetService: DatasetService,
     ) { }
 
     @Get('list')
@@ -87,5 +91,30 @@ export class DatasetController {
             throw new BadRequestException('Usuário não autenticado');
         }
         return this.uploadFileUseCase.execute(file, userId, knowledgeBaseId);
+    }
+
+    @Delete(':fileId')
+    @ApiOperation({
+        summary: 'Remover arquivo',
+        description: 'Remove um arquivo do dataset, excluindo tanto o arquivo do storage quanto o registro do banco de dados',
+    })
+    @ApiParam({ name: 'fileId', description: 'ID do arquivo a ser removido' })
+    @ApiResponse({
+        status: 200,
+        description: 'Arquivo removido com sucesso',
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Arquivo não encontrado',
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Não autorizado',
+    })
+    async deleteFile(
+        @Request() req,
+        @Param('fileId') fileId: string,
+    ): Promise<void> {
+        return this.datasetService.deleteFile(fileId, req.user.id);
     }
 } 
