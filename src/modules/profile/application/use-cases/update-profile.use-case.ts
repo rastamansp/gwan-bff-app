@@ -18,7 +18,7 @@ export class UpdateProfileUseCase {
         }
 
         // Atualiza apenas os campos permitidos
-        const allowedFields = ['name', 'description'];
+        const allowedFields = ['name', 'description', 'whatsapp'];
         const updateData = Object.keys(data)
             .filter(key => allowedFields.includes(key))
             .reduce((obj, key) => {
