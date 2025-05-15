@@ -8,4 +8,5 @@ export interface IChatbotRepository extends IBaseRepository<Chatbot> {
     updateStatus(id: string, isActive: boolean): Promise<Chatbot>;
     updateN8nConfig(id: string, n8nConfig: Partial<Chatbot>): Promise<Chatbot>;
     updateVectorConfig(id: string, vectorConfig: Partial<Chatbot>): Promise<Chatbot>;
+    list(page: number, limit: number): Promise<{ data: Chatbot[]; total: number }>;
 } 

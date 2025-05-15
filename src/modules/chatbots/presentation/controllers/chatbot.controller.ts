@@ -3,24 +3,31 @@ import {
     Get,
     Post,
     Put,
+    Delete,
     Body,
     Param,
+    Query,
     UseGuards,
     Request,
-    HttpCode,
-    HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CreateChatbotUseCase } from '../../application/use-cases/create-chatbot.use-case';
-import { ChatbotService } from '../../domain/services/chatbot.service';
+import { ListChatbotsUseCase } from '../../application/use-cases/list-chatbots.use-case';
+import { UpdateChatbotUseCase } from '../../application/use-cases/update-chatbot.use-case';
+import { DeleteChatbotUseCase } from '../../application/use-cases/delete-chatbot.use-case';
+import { UpdateN8nConfigUseCase } from '../../application/use-cases/update-n8n-config.use-case';
+import { UpdateVectorConfigUseCase } from '../../application/use-cases/update-vector-config.use-case';
+import { UpdateStatusUseCase } from '../../application/use-cases/update-status.use-case';
 import {
     CreateChatbotDto,
     UpdateChatbotDto,
     UpdateN8nConfigDto,
     UpdateVectorConfigDto,
     UpdateStatusDto,
-} from '../../application/dtos/chatbot.dtos';
+    ChatbotResponseDto,
+    ListChatbotsResponseDto,
+} from '../../domain/dtos/chatbot.dtos';
 
 @ApiTags('chatbots')
 @Controller('chatbots')
@@ -29,69 +36,86 @@ import {
 export class ChatbotController {
     constructor(
         private readonly createChatbotUseCase: CreateChatbotUseCase,
-        private readonly chatbotService: ChatbotService,
+        private readonly listChatbotsUseCase: ListChatbotsUseCase,
+        private readonly updateChatbotUseCase: UpdateChatbotUseCase,
+        private readonly deleteChatbotUseCase: DeleteChatbotUseCase,
+        private readonly updateN8nConfigUseCase: UpdateN8nConfigUseCase,
+        private readonly updateVectorConfigUseCase: UpdateVectorConfigUseCase,
+        private readonly updateStatusUseCase: UpdateStatusUseCase,
     ) { }
 
     @Post()
-    @ApiOperation({ summary: 'Criar um novo chatbot' })
-    @ApiResponse({ status: 201, description: 'Chatbot criado com sucesso' })
-    @ApiResponse({ status: 400, description: 'Dados inválidos' })
-    @ApiResponse({ status: 401, description: 'Não autorizado' })
-    @ApiResponse({ status: 409, description: 'Já existe um chatbot com este nome' })
-    async create(@Request() req, @Body() dto: CreateChatbotDto) {
+    @ApiOperation({ summary: 'Create a new chatbot' })
+    @ApiResponse({ status: 201, type: ChatbotResponseDto })
+    async create(
+        @Request() req,
+        @Body() dto: CreateChatbotDto,
+    ): Promise<ChatbotResponseDto> {
         return this.createChatbotUseCase.execute(req.user.id, dto);
     }
 
     @Get()
-    @ApiOperation({ summary: 'Listar todos os chatbots do usuário' })
-    @ApiResponse({ status: 200, description: 'Lista de chatbots retornada com sucesso' })
-    @ApiResponse({ status: 401, description: 'Não autorizado' })
-    async findAll(@Request() req) {
-        return this.chatbotService.findByUserId(req.user.id);
-    }
-
-    @Get(':id')
-    @ApiOperation({ summary: 'Buscar um chatbot específico' })
-    @ApiResponse({ status: 200, description: 'Chatbot encontrado com sucesso' })
-    @ApiResponse({ status: 401, description: 'Não autorizado' })
-    @ApiResponse({ status: 404, description: 'Chatbot não encontrado' })
-    async findOne(@Param('id') id: string) {
-        return this.chatbotService.findById(id);
+    @ApiOperation({ summary: 'List all chatbots' })
+    @ApiResponse({ status: 200, type: ListChatbotsResponseDto })
+    async list(
+        @Request() req,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+    ): Promise<ListChatbotsResponseDto> {
+        return this.listChatbotsUseCase.execute(req.user.id, page, limit);
     }
 
     @Put(':id')
-    @ApiOperation({ summary: 'Atualizar um chatbot' })
-    @ApiResponse({ status: 200, description: 'Chatbot atualizado com sucesso' })
-    @ApiResponse({ status: 401, description: 'Não autorizado' })
-    @ApiResponse({ status: 404, description: 'Chatbot não encontrado' })
-    async update(@Param('id') id: string, @Body() dto: UpdateChatbotDto) {
-        return this.chatbotService.update(id, dto);
+    @ApiOperation({ summary: 'Update a chatbot' })
+    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    async update(
+        @Request() req,
+        @Param('id') id: string,
+        @Body() dto: UpdateChatbotDto,
+    ): Promise<ChatbotResponseDto> {
+        return this.updateChatbotUseCase.execute(req.user.id, id, dto);
     }
 
     @Put(':id/n8n-config')
-    @ApiOperation({ summary: 'Atualizar configuração n8n do chatbot' })
-    @ApiResponse({ status: 200, description: 'Configuração atualizada com sucesso' })
-    @ApiResponse({ status: 401, description: 'Não autorizado' })
-    @ApiResponse({ status: 404, description: 'Chatbot não encontrado' })
-    async updateN8nConfig(@Param('id') id: string, @Body() dto: UpdateN8nConfigDto) {
-        return this.chatbotService.updateN8nConfig(id, dto);
+    @ApiOperation({ summary: 'Update chatbot N8N configuration' })
+    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    async updateN8nConfig(
+        @Request() req,
+        @Param('id') id: string,
+        @Body() dto: UpdateN8nConfigDto,
+    ): Promise<ChatbotResponseDto> {
+        return this.updateN8nConfigUseCase.execute(req.user.id, id, dto);
     }
 
     @Put(':id/vector-config')
-    @ApiOperation({ summary: 'Atualizar configuração de vetor do chatbot' })
-    @ApiResponse({ status: 200, description: 'Configuração atualizada com sucesso' })
-    @ApiResponse({ status: 401, description: 'Não autorizado' })
-    @ApiResponse({ status: 404, description: 'Chatbot não encontrado' })
-    async updateVectorConfig(@Param('id') id: string, @Body() dto: UpdateVectorConfigDto) {
-        return this.chatbotService.updateVectorConfig(id, dto);
+    @ApiOperation({ summary: 'Update chatbot Vector configuration' })
+    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    async updateVectorConfig(
+        @Request() req,
+        @Param('id') id: string,
+        @Body() dto: UpdateVectorConfigDto,
+    ): Promise<ChatbotResponseDto> {
+        return this.updateVectorConfigUseCase.execute(req.user.id, id, dto);
     }
 
     @Put(':id/status')
-    @ApiOperation({ summary: 'Atualizar status do chatbot' })
-    @ApiResponse({ status: 200, description: 'Status atualizado com sucesso' })
-    @ApiResponse({ status: 401, description: 'Não autorizado' })
-    @ApiResponse({ status: 404, description: 'Chatbot não encontrado' })
-    async updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
-        return this.chatbotService.updateStatus(id, dto.isActive);
+    @ApiOperation({ summary: 'Update chatbot status' })
+    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    async updateStatus(
+        @Request() req,
+        @Param('id') id: string,
+        @Body() dto: UpdateStatusDto,
+    ): Promise<ChatbotResponseDto> {
+        return this.updateStatusUseCase.execute(req.user.id, id, dto);
+    }
+
+    @Delete(':id')
+    @ApiOperation({ summary: 'Delete a chatbot' })
+    @ApiResponse({ status: 204 })
+    async delete(
+        @Request() req,
+        @Param('id') id: string,
+    ): Promise<void> {
+        await this.deleteChatbotUseCase.execute(req.user.id, id);
     }
 } 

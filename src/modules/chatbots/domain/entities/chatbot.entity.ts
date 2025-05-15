@@ -23,7 +23,11 @@ export class Chatbot extends BaseEntity {
 
     @ApiProperty({ description: 'Modelo de IA utilizado' })
     @Prop({ required: true })
-    model: string;
+    aiModel: string;
+
+    @ApiProperty({ description: 'Máximo de tokens para respostas da IA', default: 2000 })
+    @Prop({ default: 2000 })
+    maxTokens: number;
 
     @ApiProperty({ description: 'Tamanho da janela de contexto' })
     @Prop({ required: true, default: 12 })
@@ -84,6 +88,32 @@ export class Chatbot extends BaseEntity {
     @ApiProperty({ description: 'Status de ativação do chatbot' })
     @Prop({ default: true })
     isActive: boolean;
+
+    @ApiProperty()
+    createdAt: Date;
+
+    @ApiProperty()
+    updatedAt: Date;
+
+    constructor(partial: Partial<Chatbot>) {
+        super();
+        Object.assign(this, partial);
+    }
+
+    activate(): void {
+        this.isActive = true;
+        this.updatedAt = new Date();
+    }
+
+    deactivate(): void {
+        this.isActive = false;
+        this.updatedAt = new Date();
+    }
+
+    updateDetails(details: Partial<Chatbot>): void {
+        Object.assign(this, details);
+        this.updatedAt = new Date();
+    }
 }
 
 export type ChatbotDocument = Chatbot & Document;

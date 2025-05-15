@@ -1,42 +1,38 @@
-import { Injectable, Logger, ConflictException, Inject } from '@nestjs/common';
-import { Types } from 'mongoose';
-import { Chatbot } from '../../domain/entities/chatbot.entity';
-import { ChatbotService } from '../../domain/services/chatbot.service';
-import { CreateChatbotDto, ChatbotResponseDto } from '../../domain/dtos/chatbot.dtos';
-import { BaseUseCase } from '../../../../core/domain/use-cases/base.use-case';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { IChatbotRepository } from '../../domain/repositories/chatbot.repository.interface';
+import { UpdateChatbotDto, ChatbotResponseDto } from '../../domain/dtos/chatbot.dtos';
+import { Chatbot } from '../../domain/entities/chatbot.entity';
 import { CHATBOT_REPOSITORY } from '../../domain/tokens/injection.tokens';
+import { Types } from 'mongoose';
 
 @Injectable()
-export class CreateChatbotUseCase extends BaseUseCase<Chatbot> {
-    private readonly logger = new Logger(CreateChatbotUseCase.name);
-
+export class UpdateChatbotUseCase {
     constructor(
-        private readonly chatbotService: ChatbotService,
         @Inject(CHATBOT_REPOSITORY)
         private readonly chatbotRepository: IChatbotRepository
-    ) {
-        super(chatbotService);
-    }
+    ) { }
 
-    async execute(userId: string, dto: CreateChatbotDto): Promise<ChatbotResponseDto> {
-        this.logger.debug(`[CreateChatbot] Criando chatbot para usuário: ${userId}`);
+    async execute(userId: string, id: string, dto: UpdateChatbotDto): Promise<ChatbotResponseDto> {
+        const existingChatbot = await this.chatbotRepository.findById(id);
 
-        // Verifica se já existe um chatbot com o mesmo nome para este usuário
-        const existingChatbot = await this.chatbotService.findByName(dto.name);
-        if (existingChatbot) {
-            this.logger.warn(`[CreateChatbot] Já existe um chatbot com o nome: ${dto.name}`);
-            throw new ConflictException('Já existe um chatbot com este nome');
+        if (!existingChatbot) {
+            throw new NotFoundException(`Chatbot with ID ${id} not found`);
         }
 
-        const chatbot = await this.chatbotService.create({
+        if (existingChatbot.userId.toString() !== userId) {
+            throw new NotFoundException(`Chatbot with ID ${id} not found`);
+        }
+
+        const updatedChatbot = await this.chatbotRepository.update(id, {
             ...dto,
-            userId: new Types.ObjectId(userId),
-            isActive: true,
+            updatedAt: new Date(),
         });
 
-        this.logger.debug(`[CreateChatbot] Chatbot criado com sucesso: ${chatbot.id}`);
-        return this.mapToResponseDto(chatbot);
+        if (!updatedChatbot) {
+            throw new NotFoundException(`Failed to update chatbot with ID ${id}`);
+        }
+
+        return this.mapToResponseDto(updatedChatbot);
     }
 
     private mapToResponseDto(chatbot: Chatbot): ChatbotResponseDto {

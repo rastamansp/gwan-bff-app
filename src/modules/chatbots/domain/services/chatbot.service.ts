@@ -2,13 +2,14 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { BaseService } from '../../../../core/domain/services/base.service';
 import { Chatbot } from '../entities/chatbot.entity';
 import { IChatbotRepository } from '../repositories/chatbot.repository.interface';
+import { CHATBOT_REPOSITORY } from '../tokens/injection.tokens';
 
 @Injectable()
 export class ChatbotService extends BaseService<Chatbot> {
     private readonly logger = new Logger(ChatbotService.name);
 
     constructor(
-        @Inject('IChatbotRepository')
+        @Inject(CHATBOT_REPOSITORY)
         private readonly chatbotRepository: IChatbotRepository,
     ) {
         super(chatbotRepository);
