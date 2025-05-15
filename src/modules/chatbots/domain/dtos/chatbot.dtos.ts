@@ -29,6 +29,12 @@ export class CreateChatbotDto {
     @Max(32)
     @IsOptional()
     contentWindowSize?: number;
+
+    @ApiProperty({ description: 'Máximo de tokens para respostas da IA', default: 2000 })
+    @IsNumber()
+    @Min(1)
+    @IsOptional()
+    maxTokens?: number;
 }
 
 export class UpdateChatbotDto extends CreateChatbotDto { }
