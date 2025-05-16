@@ -1,10 +1,10 @@
 services:
   api:
     build:
-      context: https://github.com/rastamansp/gwan-bff-app.git # Usa o repositório git como contexto
       #context: .
+      context: https://github.com/rastamansp/gwan-bff-app.git # Usa o repositório git como contexto
+
       dockerfile: Dockerfile
-    image: node:20-bullseye
     container_name: gwan_bff_api
     restart: unless-stopped
     ports:
@@ -79,7 +79,14 @@ services:
       - "traefik.http.middlewares.gwan-bff-headers.headers.forceSTSHeader=true"
       - "traefik.http.middlewares.gwan-bff-headers.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.gwan-bff-headers.headers.stsPreload=true"
-      - "traefik.http.routers.gwan-bff.middlewares=gwan-bff-headers"
+      # CORS middleware
+      - "traefik.http.middlewares.gwan-bff-cors.headers.accessControlAllowMethods=GET,POST,PUT,DELETE,PATCH,OPTIONS"
+      - "traefik.http.middlewares.gwan-bff-cors.headers.accessControlAllowOriginList=https://admin.gwan.com.br,https://www.admin.gwan.com.br,https://bff.gwan.com.br,https://www.bff.gwan.com.br"
+      - "traefik.http.middlewares.gwan-bff-cors.headers.accessControlAllowHeaders=Content-Type,Authorization"
+      - "traefik.http.middlewares.gwan-bff-cors.headers.accessControlAllowCredentials=true"
+      - "traefik.http.middlewares.gwan-bff-cors.headers.accessControlMaxAge=100"
+      # Apply both middlewares
+      - "traefik.http.routers.gwan-bff.middlewares=gwan-bff-headers,gwan-bff-cors"
     networks:
       - gwan # Usa a rede externa 'gwan'
 
