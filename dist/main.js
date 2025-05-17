@@ -53,7 +53,13 @@ async function bootstrap() {
             try {
                 const db = mongoose.connection.db;
                 const result = await db.command({ connectionStatus: 1 });
-                logger.log("[MongoDB] Usuário autenticado:", result?.authInfo?.authenticatedUsers?.[0]?.user || "não disponível");
+                logger.log("[MongoDB] Detalhes da conexão:", {
+                    database: db.databaseName,
+                    user: result?.authInfo?.authenticatedUsers?.[0]?.user || "não disponível",
+                    host: mongoose.connection.host,
+                    port: mongoose.connection.port,
+                    name: mongoose.connection.name
+                });
             }
             catch (err) {
                 logger.error("[MongoDB] Erro ao obter status da conexão:", err);
