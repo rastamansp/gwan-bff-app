@@ -1,4 +1,4 @@
-import { LoginDto } from '../dtos/login.dto';
+import { LoginDto } from '../dtos/auth.dtos';
 
 export interface IAuthService {
     login(loginDto: LoginDto): Promise<{ access_token: string }>;

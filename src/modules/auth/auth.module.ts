@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { JwtModule } from "@nestjs/jwt";
 import { ConfigModule } from "@nestjs/config";
-import { AuthController } from "./infrastructure/controllers/auth.controller";
+import { AuthController } from "./presentation/controllers/auth.controller";
 import { User, UserSchema } from "./domain/entities/user.entity";
 import { MongooseUserRepository } from "./infrastructure/repositories/mongoose-user.repository";
 import { RegisterUseCase } from "./application/use-cases/register.use-case";
