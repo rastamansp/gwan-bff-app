@@ -1,8 +1,13 @@
 import { IsArray, IsOptional, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 
+@ApiSchema({ name: 'KnowledgeUpdate' })
 export class UpdateKnowledgeDto {
-    @ApiProperty({ description: 'Título do conhecimento', required: false })
+    @ApiProperty({
+        description: 'Título do conhecimento',
+        required: false,
+        name: 'KnowledgeUpdateDto'
+    })
     @IsOptional()
     @IsString()
     title?: string;

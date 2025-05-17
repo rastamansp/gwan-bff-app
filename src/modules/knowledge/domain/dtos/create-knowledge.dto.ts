@@ -1,6 +1,7 @@
 import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 
+@ApiSchema({ name: 'KnowledgeCreate' })
 export class CreateKnowledgeDto {
     @ApiProperty({ description: 'Título do conhecimento' })
     @IsNotEmpty()

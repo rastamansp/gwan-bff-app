@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: 'KnowledgeBaseCreate' })
 export class CreateKnowledgeBaseDto {
   @IsString()
   @IsNotEmpty()
@@ -8,7 +9,7 @@ export class CreateKnowledgeBaseDto {
 
   @ApiProperty({
     description: "Nome da base de conhecimento",
-    example: "Base de Conhecimento de Marketing",
+    example: "Base de Conhecimento de Marketing"
   })
   @IsString()
   @IsNotEmpty()

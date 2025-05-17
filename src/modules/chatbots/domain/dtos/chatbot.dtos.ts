@@ -1,7 +1,8 @@
-import { ApiProperty, ApiExtraModels } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber, IsOptional, Min, Max, IsBoolean, IsUrl } from 'class-validator';
 import { Type } from '@nestjs/common';
 
+@ApiSchema({ name: 'ChatbotResponse' })
 export class ChatbotResponseDto {
     @ApiProperty()
     id: string;
@@ -73,6 +74,7 @@ export class ChatbotResponseDto {
     updatedAt: Date;
 }
 
+@ApiSchema({ name: 'ChatbotListResponse' })
 export class ListChatbotsResponseDto {
     @ApiProperty({ type: () => [ChatbotResponseDto] })
     data: ChatbotResponseDto[];
@@ -87,9 +89,12 @@ export class ListChatbotsResponseDto {
     limit: number;
 }
 
-@ApiExtraModels(ChatbotResponseDto, ListChatbotsResponseDto)
+@ApiSchema({ name: 'ChatbotCreate' })
 export class CreateChatbotDto {
-    @ApiProperty({ description: 'Nome do chatbot' })
+    @ApiProperty({
+        description: 'Nome do chatbot',
+        name: 'ChatbotCreateDto'
+    })
     @IsString()
     @IsNotEmpty()
     name: string;
@@ -123,8 +128,46 @@ export class CreateChatbotDto {
     maxTokens?: number;
 }
 
-export class UpdateChatbotDto extends CreateChatbotDto { }
+@ApiSchema({ name: 'ChatbotUpdate' })
+export class UpdateChatbotDto {
+    @ApiProperty({
+        description: 'Nome do chatbot',
+        name: 'ChatbotUpdateDto'
+    })
+    @IsString()
+    @IsOptional()
+    name?: string;
 
+    @ApiProperty({ description: 'Descrição do chatbot' })
+    @IsString()
+    @IsNotEmpty()
+    description: string;
+
+    @ApiProperty({ description: 'Prompt do sistema para o chatbot' })
+    @IsString()
+    @IsNotEmpty()
+    systemPrompt: string;
+
+    @ApiProperty({ description: 'Modelo de IA utilizado' })
+    @IsString()
+    @IsNotEmpty()
+    aiModel: string;
+
+    @ApiProperty({ description: 'Tamanho da janela de contexto', default: 12 })
+    @IsNumber()
+    @Min(1)
+    @Max(32)
+    @IsOptional()
+    contentWindowSize?: number;
+
+    @ApiProperty({ description: 'Máximo de tokens para respostas da IA', default: 2000 })
+    @IsNumber()
+    @Min(1)
+    @IsOptional()
+    maxTokens?: number;
+}
+
+@ApiSchema({ name: 'ChatbotN8nConfig' })
 export class UpdateN8nConfigDto {
     @ApiProperty({ description: 'ID do chatbot no n8n' })
     @IsString()
@@ -162,9 +205,12 @@ export class UpdateN8nConfigDto {
     n8nChatInitialMessage?: string;
 }
 
-@ApiExtraModels(ChatbotResponseDto, ListChatbotsResponseDto)
+@ApiSchema({ name: 'ChatbotVectorConfig' })
 export class UpdateVectorConfigDto {
-    @ApiProperty({ description: 'Nome do vetor de dados' })
+    @ApiProperty({
+        description: 'Nome do vetor de dados',
+        name: 'ChatbotVectorConfigDto'
+    })
     @IsString()
     @IsNotEmpty()
     dataVector: string;
@@ -196,8 +242,12 @@ export class UpdateVectorConfigDto {
     dataVectorEmbeddingsModel: string;
 }
 
+@ApiSchema({ name: 'ChatbotStatus' })
 export class UpdateStatusDto {
-    @ApiProperty({ description: 'Status de ativação do chatbot' })
+    @ApiProperty({
+        description: 'Status de ativação do chatbot',
+        name: 'ChatbotStatusDto'
+    })
     @IsBoolean()
     @IsNotEmpty()
     isActive: boolean;

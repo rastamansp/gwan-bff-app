@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsEmail, IsString, IsNotEmpty, MinLength } from 'class-validator';
 import { User } from '../entities/user.entity';
 
@@ -19,6 +19,7 @@ export class RegisterDto {
     whatsapp: string;
 }
 
+@ApiSchema({ name: 'AuthLoginDto' })
 export class LoginDto {
     @ApiProperty({ example: 'john@example.com' })
     @IsEmail()

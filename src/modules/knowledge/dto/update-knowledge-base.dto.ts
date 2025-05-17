@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsEnum } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 
 export enum KnowledgeBaseStatus {
   PROCESSING = "processing",
@@ -7,8 +7,13 @@ export enum KnowledgeBaseStatus {
   ERROR = "error",
 }
 
+@ApiSchema({ name: 'KnowledgeBaseUpdate' })
 export class UpdateKnowledgeBaseDto {
-  @ApiProperty({ description: "Nome da base de conhecimento", required: false })
+  @ApiProperty({
+    description: "Nome da base de conhecimento",
+    required: false,
+    name: 'KnowledgeBaseUpdateDto'
+  })
   @IsString()
   @IsOptional()
   name?: string;
