@@ -2,14 +2,13 @@ import { Controller, Get, Patch, Body, UseGuards, Request } from '@nestjs/common
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiExtraModels } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { ProfileService } from '../../domain/services/profile.service';
-import { UpdateProfileDto } from '../../domain/dto/update-profile.dto';
-import { ProfileResponseDto } from '../../domain/dto/profile-response.dto';
+import { UserProfileResponseDto, UserUpdateProfileDto } from '../../domain/dtos/user.dtos';
 
 @ApiTags('Perfil do Usuário')
 @Controller('user/profile')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT')
-@ApiExtraModels(ProfileResponseDto, UpdateProfileDto)
+@ApiExtraModels(UserProfileResponseDto, UserUpdateProfileDto)
 export class ProfileController {
     constructor(private readonly profileService: ProfileService) { }
 
@@ -21,7 +20,7 @@ export class ProfileController {
     @ApiResponse({
         status: 200,
         description: 'Perfil do usuário retornado com sucesso',
-        type: ProfileResponseDto
+        type: UserProfileResponseDto
     })
     @ApiResponse({
         status: 401,
@@ -43,7 +42,7 @@ export class ProfileController {
     @ApiResponse({
         status: 200,
         description: 'Perfil atualizado com sucesso',
-        type: ProfileResponseDto
+        type: UserProfileResponseDto
     })
     @ApiResponse({
         status: 400,
@@ -59,7 +58,7 @@ export class ProfileController {
     })
     async updateProfile(
         @Request() req,
-        @Body() updateProfileDto: UpdateProfileDto,
+        @Body() updateProfileDto: UserUpdateProfileDto,
     ) {
         return this.profileService.updateProfile(req.user.id, updateProfileDto);
     }

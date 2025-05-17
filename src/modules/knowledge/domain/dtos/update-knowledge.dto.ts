@@ -1,12 +1,11 @@
 import { IsArray, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 
-@ApiSchema({ name: 'KnowledgeUpdate' })
+@ApiSchema({ name: 'KnowledgeUpdateModel' })
 export class UpdateKnowledgeDto {
     @ApiProperty({
         description: 'Título do conhecimento',
-        required: false,
-        name: 'KnowledgeUpdateDto'
+        required: false
     })
     @IsOptional()
     @IsString()
@@ -17,10 +16,12 @@ export class UpdateKnowledgeDto {
     @IsString()
     content?: string;
 
+    @ApiProperty({ description: 'Categoria do conhecimento', required: false })
     @IsOptional()
     @IsString()
     category?: string;
 
+    @ApiProperty({ description: 'Tags do conhecimento', required: false, type: [String] })
     @IsOptional()
     @IsArray()
     @IsString({ each: true })

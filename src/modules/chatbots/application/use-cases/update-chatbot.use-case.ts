@@ -1,18 +1,21 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
+import { UpdateChatbotRequestDto, ChatbotResponseDto } from '../../domain/dtos/chatbot.dtos';
 import { IChatbotRepository } from '../../domain/repositories/chatbot.repository.interface';
-import { UpdateChatbotDto, ChatbotResponseDto } from '../../domain/dtos/chatbot.dtos';
 import { Chatbot } from '../../domain/entities/chatbot.entity';
-import { CHATBOT_REPOSITORY } from '../../domain/tokens/injection.tokens';
 import { Types } from 'mongoose';
+
+export const CHATBOT_REPOSITORY = 'CHATBOT_REPOSITORY';
 
 @Injectable()
 export class UpdateChatbotUseCase {
+    private readonly logger = new Logger(UpdateChatbotUseCase.name);
+
     constructor(
         @Inject(CHATBOT_REPOSITORY)
         private readonly chatbotRepository: IChatbotRepository
     ) { }
 
-    async execute(userId: string, id: string, dto: UpdateChatbotDto): Promise<ChatbotResponseDto> {
+    async execute(userId: string, id: string, dto: UpdateChatbotRequestDto): Promise<ChatbotResponseDto> {
         const existingChatbot = await this.chatbotRepository.findById(id);
 
         if (!existingChatbot) {

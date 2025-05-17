@@ -5,13 +5,14 @@ import {
     Logger,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { KnowledgeBase } from "./schemas/knowledge-base.schema";
 import { CreateKnowledgeBaseDto } from "./dto/create-knowledge-base.dto";
 import { UpdateKnowledgeBaseDto } from "./dto/update-knowledge-base.dto";
 import { DatasetService } from "../dataset/dataset.service";
 import { RabbitMQService } from "./infrastructure/services/rabbitmq.service";
 import { StartProcessUseCase } from "./application/use-cases/start-process/start-process.usecase";
+import { KnowledgeBaseStatus } from "./domain/enums/knowledge-base-status.enum";
 
 @Injectable()
 export class KnowledgeService {
@@ -34,7 +35,7 @@ export class KnowledgeService {
             userId,
             name,
             description,
-            status: "new",
+            status: KnowledgeBaseStatus.NEW,
         };
         console.log("createDto", createDto);
         const createdKnowledgeBase = new this.knowledgeBaseModel(createDto);

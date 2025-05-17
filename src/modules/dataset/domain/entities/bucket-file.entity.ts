@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { FileStatus } from '../enums/file-status.enum';
 
-export type FileStatus = 'available' | 'processing' | 'processed' | 'error';
+export { FileStatus };
 
 @Schema({ timestamps: true })
 export class BucketFile extends Document {
@@ -31,8 +32,8 @@ export class BucketFile extends Document {
 
   @Prop({
     type: String,
-    enum: ['available', 'processing', 'processed', 'error'],
-    default: 'available'
+    enum: FileStatus,
+    default: FileStatus.AVAILABLE
   })
   status: FileStatus;
 

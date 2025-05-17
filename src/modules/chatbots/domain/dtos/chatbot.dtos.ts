@@ -2,79 +2,79 @@ import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsNumber, IsOptional, Min, Max, IsBoolean, IsUrl } from 'class-validator';
 import { Type } from '@nestjs/common';
 
-@ApiSchema({ name: 'ChatbotResponse' })
+@ApiSchema({ name: 'ChatbotResponseModel' })
 export class ChatbotResponseDto {
-    @ApiProperty()
+    @ApiProperty({ description: 'ID único do chatbot' })
     id: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Nome do chatbot' })
     name: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Descrição do chatbot' })
     description: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Prompt do sistema para o chatbot' })
     systemPrompt: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Modelo de IA utilizado' })
     aiModel: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Tamanho da janela de contexto' })
     contentWindowSize: number;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'ID do chatbot no n8n', required: false })
     n8nId?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'ID do workflow no n8n', required: false })
     n8nWorkflowId?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'URL do webhook do chat no n8n', required: false })
     n8nChatUrl?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Se o chat requer clique no botão para iniciar', required: false })
     n8nChatRequireButtonClicktoStart?: boolean;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Título do chat', required: false })
     n8nChatTitle?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Subtítulo do chat', required: false })
     n8nChatSubtitle?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Mensagem inicial do chat', required: false })
     n8nChatInitialMessage?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Nome do vetor de dados', required: false })
     dataVector?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Tamanho do vetor de dados', required: false })
     dataVectorSize?: number;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Índice do vetor de dados', required: false })
     dataVectorIndex?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Namespace do vetor de dados', required: false })
     dataVectorNamespace?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Modelo do vetor de dados', required: false })
     dataVectorModel?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Modelo de embeddings do vetor de dados', required: false })
     dataVectorEmbeddingsModel?: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Status de ativação do chatbot' })
     isActive: boolean;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'ID do usuário proprietário do chatbot' })
     userId: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Data de criação do chatbot' })
     createdAt: Date;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Data da última atualização do chatbot' })
     updatedAt: Date;
 }
 
-@ApiSchema({ name: 'ChatbotListResponse' })
+@ApiSchema({ name: 'ChatbotListResponseModel' })
 export class ListChatbotsResponseDto {
     @ApiProperty({ type: () => [ChatbotResponseDto] })
     data: ChatbotResponseDto[];
@@ -89,11 +89,10 @@ export class ListChatbotsResponseDto {
     limit: number;
 }
 
-@ApiSchema({ name: 'ChatbotCreate' })
+@ApiSchema({ name: 'ChatbotCreateModel' })
 export class CreateChatbotDto {
     @ApiProperty({
-        description: 'Nome do chatbot',
-        name: 'ChatbotCreateDto'
+        description: 'Nome do chatbot'
     })
     @IsString()
     @IsNotEmpty()
@@ -128,11 +127,10 @@ export class CreateChatbotDto {
     maxTokens?: number;
 }
 
-@ApiSchema({ name: 'ChatbotUpdate' })
-export class UpdateChatbotDto {
+@ApiSchema({ name: 'ChatbotUpdateRequestModel' })
+export class UpdateChatbotRequestDto {
     @ApiProperty({
-        description: 'Nome do chatbot',
-        name: 'ChatbotUpdateDto'
+        description: 'Nome do chatbot'
     })
     @IsString()
     @IsOptional()
@@ -140,18 +138,18 @@ export class UpdateChatbotDto {
 
     @ApiProperty({ description: 'Descrição do chatbot' })
     @IsString()
-    @IsNotEmpty()
-    description: string;
+    @IsOptional()
+    description?: string;
 
     @ApiProperty({ description: 'Prompt do sistema para o chatbot' })
     @IsString()
-    @IsNotEmpty()
-    systemPrompt: string;
+    @IsOptional()
+    systemPrompt?: string;
 
     @ApiProperty({ description: 'Modelo de IA utilizado' })
     @IsString()
-    @IsNotEmpty()
-    aiModel: string;
+    @IsOptional()
+    aiModel?: string;
 
     @ApiProperty({ description: 'Tamanho da janela de contexto', default: 12 })
     @IsNumber()
@@ -167,7 +165,7 @@ export class UpdateChatbotDto {
     maxTokens?: number;
 }
 
-@ApiSchema({ name: 'ChatbotN8nConfig' })
+@ApiSchema({ name: 'ChatbotN8nConfigModel' })
 export class UpdateN8nConfigDto {
     @ApiProperty({ description: 'ID do chatbot no n8n' })
     @IsString()
@@ -205,11 +203,10 @@ export class UpdateN8nConfigDto {
     n8nChatInitialMessage?: string;
 }
 
-@ApiSchema({ name: 'ChatbotVectorConfig' })
+@ApiSchema({ name: 'ChatbotVectorConfigModel' })
 export class UpdateVectorConfigDto {
     @ApiProperty({
-        description: 'Nome do vetor de dados',
-        name: 'ChatbotVectorConfigDto'
+        description: 'Nome do vetor de dados'
     })
     @IsString()
     @IsNotEmpty()
@@ -242,11 +239,12 @@ export class UpdateVectorConfigDto {
     dataVectorEmbeddingsModel: string;
 }
 
-@ApiSchema({ name: 'ChatbotStatus' })
-export class UpdateStatusDto {
+@ApiSchema({ name: 'ChatbotStatusUpdateModel' })
+export class UpdateChatbotStatusDto {
     @ApiProperty({
         description: 'Status de ativação do chatbot',
-        name: 'ChatbotStatusDto'
+        type: Boolean,
+        example: true
     })
     @IsBoolean()
     @IsNotEmpty()

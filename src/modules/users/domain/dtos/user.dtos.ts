@@ -1,7 +1,7 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsString, IsEmail, IsOptional, IsBoolean, IsDate, MinLength, MaxLength, Matches } from 'class-validator';
 
-@ApiSchema({ name: 'UserProfileResponse' })
+@ApiSchema({ name: 'UserProfileResponseModel' })
 export class UserProfileResponseDto {
     @ApiProperty({ description: 'ID do usuário' })
     id: string;
@@ -31,7 +31,7 @@ export class UserProfileResponseDto {
     updatedAt: Date;
 }
 
-@ApiSchema({ name: 'UserUpdateProfile' })
+@ApiSchema({ name: 'UserUpdateProfileModel' })
 export class UserUpdateProfileDto {
     @ApiProperty({
         description: 'Nome do usuário',
@@ -58,7 +58,7 @@ export class UserUpdateProfileDto {
     whatsapp?: string;
 }
 
-@ApiSchema({ name: 'UserRegister' })
+@ApiSchema({ name: 'UserRegisterModel' })
 export class UserRegisterDto {
     @ApiProperty({
         description: 'Nome do usuário',
@@ -90,7 +90,7 @@ export class UserRegisterDto {
     whatsapp: string;
 }
 
-@ApiSchema({ name: 'UserLogin' })
+@ApiSchema({ name: 'UserLoginModel' })
 export class UserLoginDto {
     @ApiProperty({
         description: 'Email do usuário',
@@ -100,7 +100,7 @@ export class UserLoginDto {
     email: string;
 }
 
-@ApiSchema({ name: 'UserVerifyCode' })
+@ApiSchema({ name: 'UserVerifyCodeModel' })
 export class UserVerifyCodeDto {
     @ApiProperty({
         description: 'Código de verificação',
@@ -115,4 +115,13 @@ export class UserVerifyCodeDto {
     })
     @IsEmail({}, { message: 'Email inválido' })
     email: string;
+}
+
+@ApiSchema({ name: 'UserAuthResponseModel' })
+export class UserAuthResponseDto {
+    @ApiProperty({ description: 'Token JWT de acesso' })
+    accessToken: string;
+
+    @ApiProperty({ description: 'Dados do usuário autenticado', type: () => UserProfileResponseDto })
+    user: UserProfileResponseDto;
 } 

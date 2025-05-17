@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
+import { UserUpdateProfileDto } from '../dtos/user.dtos';
 
 @Injectable()
 export class ProfileService {
@@ -14,7 +14,7 @@ export class ProfileService {
         return this.userModel.findById(userId).select('-password').exec();
     }
 
-    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<User> {
+    async updateProfile(userId: string, updateProfileDto: UserUpdateProfileDto): Promise<User> {
         return this.userModel
             .findByIdAndUpdate(
                 userId,

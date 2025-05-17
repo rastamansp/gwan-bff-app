@@ -2,8 +2,9 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { UserService } from './user.service';
-import { RegisterDto } from '../dtos/auth.dtos';
+
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { UserRegisterDto } from '@/modules/users/domain/dtos/user.dtos';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +16,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
     ) { }
 
-    async register(registerDto: RegisterDto): Promise<User> {
+    async register(registerDto: UserRegisterDto): Promise<User> {
         this.logger.debug(`[Register] Iniciando registro para: ${registerDto.email}`);
 
         const existingUser = await this.userService.findByEmail(registerDto.email);

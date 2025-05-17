@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { IChatbotRepository } from '../../domain/repositories/chatbot.repository.interface';
-import { UpdateStatusDto, ChatbotResponseDto } from '../../domain/dtos/chatbot.dtos';
+import { UpdateChatbotStatusDto, ChatbotResponseDto } from '../../domain/dtos/chatbot.dtos';
 import { Chatbot } from '../../domain/entities/chatbot.entity';
 import { CHATBOT_REPOSITORY } from '../../domain/tokens/injection.tokens';
 
@@ -11,7 +11,7 @@ export class UpdateStatusUseCase {
         private readonly chatbotRepository: IChatbotRepository
     ) { }
 
-    async execute(userId: string, id: string, dto: UpdateStatusDto): Promise<ChatbotResponseDto> {
+    async execute(userId: string, id: string, dto: UpdateChatbotStatusDto): Promise<ChatbotResponseDto> {
         const existingChatbot = await this.chatbotRepository.findById(id);
 
         if (!existingChatbot) {

@@ -1,7 +1,8 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum } from "class-validator";
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
+import { KnowledgeBaseStatus } from "../domain/enums/knowledge-base-status.enum";
 
-@ApiSchema({ name: 'KnowledgeBaseCreate' })
+@ApiSchema({ name: 'KnowledgeBaseCreateModel' })
 export class CreateKnowledgeBaseDto {
   @IsString()
   @IsNotEmpty()
@@ -24,8 +25,12 @@ export class CreateKnowledgeBaseDto {
   @IsNotEmpty()
   description: string;
 
-  @IsString()
+  @ApiProperty({
+    description: "Status da base de conhecimento",
+    enum: KnowledgeBaseStatus,
+    enumName: 'KnowledgeBaseStatus'
+  })
+  @IsEnum(KnowledgeBaseStatus)
   @IsNotEmpty()
-  @IsEnum(["new", "processing", "completed", "failed"])
-  status: "new" | "processing" | "completed" | "failed";
+  status: KnowledgeBaseStatus;
 }

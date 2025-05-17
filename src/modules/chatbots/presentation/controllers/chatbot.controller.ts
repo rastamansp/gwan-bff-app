@@ -21,15 +21,15 @@ import { UpdateVectorConfigUseCase } from '../../application/use-cases/update-ve
 import { UpdateStatusUseCase } from '../../application/use-cases/update-status.use-case';
 import {
     CreateChatbotDto,
-    UpdateChatbotDto,
+    UpdateChatbotRequestDto,
     UpdateN8nConfigDto,
     UpdateVectorConfigDto,
-    UpdateStatusDto,
+    UpdateChatbotStatusDto,
     ChatbotResponseDto,
     ListChatbotsResponseDto,
 } from '../../domain/dtos/chatbot.dtos';
 
-@ApiTags('chatbots')
+@ApiTags('Chatbots')
 @Controller('chatbots')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
@@ -45,77 +45,94 @@ export class ChatbotController {
     ) { }
 
     @Post()
-    @ApiOperation({ summary: 'Create a new chatbot' })
-    @ApiResponse({ status: 201, type: ChatbotResponseDto })
-    async create(
-        @Request() req,
-        @Body() dto: CreateChatbotDto,
-    ): Promise<ChatbotResponseDto> {
-        return this.createChatbotUseCase.execute(req.user.id, dto);
+    @ApiOperation({ summary: 'Criar chatbot' })
+    @ApiResponse({
+        status: 201,
+        description: 'Chatbot criado com sucesso',
+        type: ChatbotResponseDto
+    })
+    async create(@Request() req, @Body() createChatbotDto: CreateChatbotDto) {
+        return this.createChatbotUseCase.execute(req.user.id, createChatbotDto);
     }
 
     @Get()
-    @ApiOperation({ summary: 'List all chatbots' })
-    @ApiResponse({ status: 200, type: ListChatbotsResponseDto })
-    async list(
-        @Request() req,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
-    ): Promise<ListChatbotsResponseDto> {
-        return this.listChatbotsUseCase.execute(req.user.id, page, limit);
+    @ApiOperation({ summary: 'Listar chatbots' })
+    @ApiResponse({
+        status: 200,
+        description: 'Lista de chatbots retornada com sucesso',
+        type: ListChatbotsResponseDto
+    })
+    async list(@Request() req) {
+        return this.listChatbotsUseCase.execute(req.user.id);
     }
 
     @Put(':id')
-    @ApiOperation({ summary: 'Update a chatbot' })
-    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    @ApiOperation({ summary: 'Atualizar chatbot' })
+    @ApiResponse({
+        status: 200,
+        description: 'Chatbot atualizado com sucesso',
+        type: ChatbotResponseDto
+    })
     async update(
         @Request() req,
         @Param('id') id: string,
-        @Body() dto: UpdateChatbotDto,
-    ): Promise<ChatbotResponseDto> {
-        return this.updateChatbotUseCase.execute(req.user.id, id, dto);
+        @Body() updateChatbotDto: UpdateChatbotRequestDto
+    ) {
+        return this.updateChatbotUseCase.execute(req.user.id, id, updateChatbotDto);
     }
 
     @Put(':id/n8n-config')
-    @ApiOperation({ summary: 'Update chatbot N8N configuration' })
-    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    @ApiOperation({ summary: 'Atualizar configuração n8n do chatbot' })
+    @ApiResponse({
+        status: 200,
+        description: 'Configuração n8n atualizada com sucesso',
+        type: ChatbotResponseDto
+    })
     async updateN8nConfig(
         @Request() req,
         @Param('id') id: string,
-        @Body() dto: UpdateN8nConfigDto,
-    ): Promise<ChatbotResponseDto> {
-        return this.updateN8nConfigUseCase.execute(req.user.id, id, dto);
+        @Body() updateN8nConfigDto: UpdateN8nConfigDto
+    ) {
+        return this.updateN8nConfigUseCase.execute(req.user.id, id, updateN8nConfigDto);
     }
 
     @Put(':id/vector-config')
-    @ApiOperation({ summary: 'Update chatbot Vector configuration' })
-    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    @ApiOperation({ summary: 'Atualizar configuração de vetores do chatbot' })
+    @ApiResponse({
+        status: 200,
+        description: 'Configuração de vetores atualizada com sucesso',
+        type: ChatbotResponseDto
+    })
     async updateVectorConfig(
         @Request() req,
         @Param('id') id: string,
-        @Body() dto: UpdateVectorConfigDto,
-    ): Promise<ChatbotResponseDto> {
-        return this.updateVectorConfigUseCase.execute(req.user.id, id, dto);
+        @Body() updateVectorConfigDto: UpdateVectorConfigDto
+    ) {
+        return this.updateVectorConfigUseCase.execute(req.user.id, id, updateVectorConfigDto);
     }
 
     @Put(':id/status')
-    @ApiOperation({ summary: 'Update chatbot status' })
-    @ApiResponse({ status: 200, type: ChatbotResponseDto })
+    @ApiOperation({ summary: 'Atualizar status do chatbot' })
+    @ApiResponse({
+        status: 200,
+        description: 'Status do chatbot atualizado com sucesso',
+        type: ChatbotResponseDto
+    })
     async updateStatus(
         @Request() req,
         @Param('id') id: string,
-        @Body() dto: UpdateStatusDto,
-    ): Promise<ChatbotResponseDto> {
-        return this.updateStatusUseCase.execute(req.user.id, id, dto);
+        @Body() updateStatusDto: UpdateChatbotStatusDto
+    ) {
+        return this.updateStatusUseCase.execute(req.user.id, id, updateStatusDto);
     }
 
     @Delete(':id')
-    @ApiOperation({ summary: 'Delete a chatbot' })
-    @ApiResponse({ status: 204 })
-    async delete(
-        @Request() req,
-        @Param('id') id: string,
-    ): Promise<void> {
-        await this.deleteChatbotUseCase.execute(req.user.id, id);
+    @ApiOperation({ summary: 'Excluir chatbot' })
+    @ApiResponse({
+        status: 200,
+        description: 'Chatbot excluído com sucesso'
+    })
+    async delete(@Request() req, @Param('id') id: string) {
+        return this.deleteChatbotUseCase.execute(req.user.id, id);
     }
 } 

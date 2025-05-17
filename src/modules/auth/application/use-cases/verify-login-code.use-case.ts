@@ -8,7 +8,7 @@ import { User } from "../../domain/entities/user.entity";
 import { UserService } from "../../domain/services/user.service";
 import { JwtService } from "@nestjs/jwt";
 import { BaseUseCase } from "../../../../core/domain/use-cases/base.use-case";
-import { AuthResponseDto, UserResponseDto } from "../../domain/dtos/auth.dtos";
+import { UserProfileResponseDto, UserAuthResponseDto } from '../../../users/domain/dtos/user.dtos';
 
 @Injectable()
 export class VerifyLoginCodeUseCase extends BaseUseCase<User> {
@@ -24,7 +24,7 @@ export class VerifyLoginCodeUseCase extends BaseUseCase<User> {
     async execute(data: {
         email: string;
         code: string;
-    }): Promise<AuthResponseDto> {
+    }): Promise<UserAuthResponseDto> {
         this.logger.log(
             `[VerifyLoginCode] Iniciando verificação de código para: ${data.email}`,
         );
@@ -116,14 +116,14 @@ export class VerifyLoginCodeUseCase extends BaseUseCase<User> {
         return this.jwtService.sign(payload);
     }
 
-    private createAuthResponse(user: User, accessToken: string): AuthResponseDto {
+    private createAuthResponse(user: User, accessToken: string): UserAuthResponseDto {
         return {
             accessToken,
             user: this.mapToUserResponseDto(user),
         };
     }
 
-    private mapToUserResponseDto(user: User): UserResponseDto {
+    private mapToUserResponseDto(user: User): UserProfileResponseDto {
         return {
             id: user.id,
             name: user.name,

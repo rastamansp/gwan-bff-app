@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 
+@ApiSchema({ name: 'KnowledgeResponseModel' })
 export class KnowledgeResponseDto {
     @ApiProperty({ description: 'ID do conhecimento' })
     id: string;

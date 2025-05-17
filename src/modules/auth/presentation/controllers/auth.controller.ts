@@ -11,12 +11,12 @@ import { LoginUseCase } from "../../application/use-cases/login.use-case";
 import { VerifyCodeUseCase } from "../../application/use-cases/verify-code.use-case";
 import { VerifyLoginCodeUseCase } from "../../application/use-cases/verify-login-code.use-case";
 import {
-    RegisterDto,
-    LoginDto,
-    VerifyCodeDto,
-    VerifyLoginCodeDto,
-    AuthResponseDto,
-} from "../../domain/dtos/auth.dtos";
+    UserRegisterDto,
+    UserLoginDto,
+    UserVerifyCodeDto,
+    UserProfileResponseDto,
+    UserAuthResponseDto
+} from '../../../users/domain/dtos/user.dtos';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -35,7 +35,7 @@ export class AuthController {
     @ApiOperation({ summary: 'Registrar um novo usuário' })
     @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso' })
     @ApiResponse({ status: 409, description: 'Email ou WhatsApp já cadastrado' })
-    async register(@Body() registerDto: RegisterDto) {
+    async register(@Body() registerDto: UserRegisterDto) {
         this.logger.log("[AuthController] Iniciando registro de usuário");
         const user = await this.registerUseCase.execute({
             name: registerDto.name,
@@ -59,7 +59,7 @@ export class AuthController {
     @ApiResponse({ status: 200, description: 'Código de login enviado com sucesso' })
     @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
     @ApiResponse({ status: 400, description: 'Usuário não verificado' })
-    async login(@Body() loginDto: LoginDto) {
+    async login(@Body() loginDto: UserLoginDto) {
         this.logger.log("[AuthController] Iniciando processo de login");
         const user = await this.loginUseCase.execute({
             email: loginDto.email,
@@ -81,7 +81,7 @@ export class AuthController {
     @ApiResponse({ status: 200, description: 'Usuário verificado com sucesso' })
     @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
     @ApiResponse({ status: 400, description: 'Código inválido ou expirado' })
-    async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
+    async verifyCode(@Body() verifyCodeDto: UserVerifyCodeDto) {
         this.logger.log("[AuthController] Iniciando verificação de código");
         const user = await this.verifyCodeUseCase.execute({
             email: verifyCodeDto.email,
@@ -104,7 +104,7 @@ export class AuthController {
     @ApiResponse({ status: 200, description: 'Login realizado com sucesso' })
     @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
     @ApiResponse({ status: 400, description: 'Código inválido ou expirado' })
-    async verifyLoginCode(@Body() verifyLoginCodeDto: VerifyLoginCodeDto): Promise<AuthResponseDto> {
+    async verifyLoginCode(@Body() verifyLoginCodeDto: UserVerifyCodeDto): Promise<UserAuthResponseDto> {
         this.logger.log("[AuthController] Iniciando verificação de código de login");
         return this.verifyLoginCodeUseCase.execute({
             email: verifyLoginCodeDto.email,

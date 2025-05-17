@@ -2,10 +2,10 @@ import { Injectable, Logger, Inject, BadRequestException } from '@nestjs/common'
 import { Multer } from 'multer';
 import { IStorageService } from '../../domain/services/storage.service.interface';
 import { IBucketFileRepository } from '../../domain/repositories/bucket-file.repository';
-import { FileUploadResult } from '../dtos/file-result.dto';
+import { FileUploadResultDto } from '../dtos/file-result.dto';
 import { Types } from 'mongoose';
 import { STORAGE_SERVICE, BUCKET_FILE_REPOSITORY } from '../../domain/constants/injection-tokens';
-import { FileStatus } from '../../domain/entities/bucket-file.entity';
+import { FileStatus } from '../../domain/enums/file-status.enum';
 
 @Injectable()
 export class UploadFileUseCase {
@@ -18,7 +18,7 @@ export class UploadFileUseCase {
         private readonly bucketFileRepository: IBucketFileRepository,
     ) { }
 
-    async execute(file: Multer['File'], userId: string, knowledgeBaseId: string): Promise<FileUploadResult> {
+    async execute(file: Multer['File'], userId: string, knowledgeBaseId: string): Promise<FileUploadResultDto> {
         if (!knowledgeBaseId) {
             throw new BadRequestException('knowledgeBaseId é obrigatório para upload de arquivos');
         }
@@ -44,7 +44,7 @@ export class UploadFileUseCase {
             url,
             bucketName: 'datasets',
             knowledgeBaseId: new Types.ObjectId(knowledgeBaseId),
-            status: 'available' as FileStatus,
+            status: FileStatus.AVAILABLE,
         });
 
         this.logger.debug(`[UploadFile] Upload concluído com sucesso: ${bucketFile.id}`);

@@ -1,8 +1,8 @@
 import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { IUserRepository } from '../../domain/repositories/user.repository.interface';
 import { User } from '../../domain/entities/user.entity';
-import { UpdateProfileDto } from '../dtos/update-profile.dto';
 import { USER_REPOSITORY } from '../../domain/tokens/injection.tokens';
+import { UserUpdateProfileDto } from '@/modules/users/domain/dtos/user.dtos';
 
 @Injectable()
 export class UpdateProfileUseCase {
@@ -11,7 +11,7 @@ export class UpdateProfileUseCase {
         private readonly userRepository: IUserRepository
     ) { }
 
-    async execute(userId: string, data: UpdateProfileDto): Promise<User> {
+    async execute(userId: string, data: UserUpdateProfileDto): Promise<User> {
         const user = await this.userRepository.findById(userId);
         if (!user) {
             throw new NotFoundException('Usuário não encontrado');

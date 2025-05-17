@@ -12,7 +12,7 @@ import { IBucketFileRepository } from "./domain/repositories/bucket-file.reposit
 import { Multer } from "multer";
 import { Types } from 'mongoose';
 import { IStorageService } from './domain/services/storage.service.interface';
-import { FileUploadResult } from './application/dtos/file-result.dto';
+import { FileUploadResultDto } from './application/dtos/file-result.dto';
 import { STORAGE_SERVICE, BUCKET_FILE_REPOSITORY } from './domain/constants/injection-tokens';
 import { DeleteFileUseCase } from "./application/use-cases/delete-file.use-case";
 
@@ -125,7 +125,7 @@ export class DatasetService {
     }
   }
 
-  async uploadFile(file: Multer['File'], userId: string, knowledgeBaseId: string): Promise<FileUploadResult> {
+  async uploadFile(file: Multer['File'], userId: string, knowledgeBaseId: string): Promise<FileUploadResultDto> {
     if (!knowledgeBaseId) {
       throw new BadRequestException('knowledgeBaseId é obrigatório para upload de arquivos');
     }

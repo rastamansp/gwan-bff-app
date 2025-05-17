@@ -7,7 +7,7 @@ import {
 import { User } from "../../domain/entities/user.entity";
 import { UserService } from "../../domain/services/user.service";
 import { BaseUseCase } from "../../../../core/domain/use-cases/base.use-case";
-import { AuthResponseDto, UserResponseDto } from '../../domain/dtos/auth.dtos';
+import { UserProfileResponseDto } from '../../../users/domain/dtos/user.dtos';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -101,7 +101,7 @@ export class VerifyCodeUseCase extends BaseUseCase<User> {
         }
     }
 
-    private mapToUserResponseDto(user: User): UserResponseDto {
+    private mapToUserResponseDto(user: User): UserProfileResponseDto {
         return {
             id: user.id,
             name: user.name,

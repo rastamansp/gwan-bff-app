@@ -1,9 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IStorageService } from '../../domain/services/storage.service.interface';
 import { IBucketFileRepository } from '../../domain/repositories/bucket-file.repository';
-import { FileListResult } from '../dtos/file-result.dto';
+import { FileListResultDto } from '../dtos/file-result.dto';
 import { STORAGE_SERVICE, BUCKET_FILE_REPOSITORY } from '../../domain/constants/injection-tokens';
-import { BucketFile, FileStatus } from '../../domain/entities/bucket-file.entity';
+import { BucketFile } from '../../domain/entities/bucket-file.entity';
+import { FileStatus } from '../../domain/enums/file-status.enum';
 import { Types } from 'mongoose';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class ListFilesUseCase {
         private readonly bucketFileRepository: IBucketFileRepository,
     ) { }
 
-    async execute(userId: string): Promise<FileListResult[]> {
+    async execute(userId: string): Promise<FileListResultDto[]> {
         this.logger.debug(`[ListFiles] Sincronizando arquivos do usuário: ${userId}`);
 
         // Obtém arquivos do MongoDB para o usuário específico
@@ -95,10 +96,10 @@ export class ListFilesUseCase {
         }
 
         // Obtém a lista atualizada de arquivos disponíveis para processamento
-        const availableFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, 'available');
-        const processingFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, 'processing');
-        const processedFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, 'processed');
-        const errorFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, 'error');
+        const availableFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, FileStatus.AVAILABLE);
+        const processingFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, FileStatus.PROCESSING);
+        const processedFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, FileStatus.PROCESSED);
+        const errorFiles = await this.bucketFileRepository.findByUserIdAndStatus(userId, FileStatus.ERROR);
 
         // Combina todos os arquivos com seus respectivos status
         const allFiles = [...availableFiles, ...processingFiles, ...processedFiles, ...errorFiles];
