@@ -20,7 +20,13 @@ const JWT_SECRET = process.env.JWT_SECRET || "gwan-secret-key-production-2024";
 @Module({
   imports: [
     ConfigModule,
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      {
+        name: User.name,
+        schema: UserSchema,
+        collection: 'users'
+      }
+    ]),
     JwtModule.register({
       secret: JWT_SECRET,
       signOptions: { expiresIn: "1d" },

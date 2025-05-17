@@ -3,12 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IUserRepository } from '../../domain/repositories/user.repository.interface';
 import { User } from '../../domain/entities/user.entity';
-import { UserSchema } from '../schemas/user.schema';
+import { User as MongooseUser } from '../../../auth/domain/entities/user.entity';
 
 @Injectable()
 export class MongoDBUserRepository implements IUserRepository {
     constructor(
-        @InjectModel('User') private readonly userModel: Model<UserSchema>,
+        @InjectModel(MongooseUser.name) private readonly userModel: Model<MongooseUser>,
     ) { }
 
     async findById(id: string): Promise<User | null> {
@@ -21,7 +21,7 @@ export class MongoDBUserRepository implements IUserRepository {
             user._id.toString(),
             user.name,
             user.email,
-            user.isVerified,
+            user.isVerified
         );
     }
 
@@ -35,7 +35,7 @@ export class MongoDBUserRepository implements IUserRepository {
             user._id.toString(),
             user.name,
             user.email,
-            user.isVerified,
+            user.isVerified
         );
     }
 
@@ -43,26 +43,29 @@ export class MongoDBUserRepository implements IUserRepository {
         const created = await this.userModel.create({
             name: user.name,
             email: user.email,
-            isVerified: user.isVerified,
+            isVerified: user.isVerified
         });
 
         return User.create(
             created._id.toString(),
             created.name,
             created.email,
-            created.isVerified,
+            created.isVerified
         );
     }
 
     async update(user: User): Promise<User> {
-        const updated = await this.userModel.findByIdAndUpdate(
-            user.id,
-            {
-                name: user.name,
-                isVerified: user.isVerified,
-            },
-            { new: true },
-        ).exec();
+        const updated = await this.userModel
+            .findByIdAndUpdate(
+                user.id,
+                {
+                    name: user.name,
+                    email: user.email,
+                    isVerified: user.isVerified
+                },
+                { new: true }
+            )
+            .exec();
 
         if (!updated) {
             return null;
@@ -72,7 +75,7 @@ export class MongoDBUserRepository implements IUserRepository {
             updated._id.toString(),
             updated.name,
             updated.email,
-            updated.isVerified,
+            updated.isVerified
         );
     }
 
@@ -87,8 +90,8 @@ export class MongoDBUserRepository implements IUserRepository {
                 user._id.toString(),
                 user.name,
                 user.email,
-                user.isVerified,
-            ),
+                user.isVerified
+            )
         );
     }
 } 

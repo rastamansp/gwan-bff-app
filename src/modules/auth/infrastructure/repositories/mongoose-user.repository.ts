@@ -56,22 +56,11 @@ export class MongooseUserRepository implements IUserRepository {
         const dbName = this.userModel.db.name;
         logger.debug(`[FindByEmail] Buscando na collection: ${collectionName} do banco: ${dbName}`);
 
-        // Try a direct query first
-        const directResult = await this.userModel.db.collection(collectionName).findOne({
-            email: { $regex: new RegExp(`^${email}$`, 'i') }
-        });
-        logger.debug(`[FindByEmail] Resultado da query direta: ${directResult ? 'Encontrado' : 'Não encontrado'}`);
-        if (directResult) {
-            logger.debug(`[FindByEmail] Detalhes do usuário (query direta): ${JSON.stringify(directResult)}`);
-        }
-
-        // Then try the mongoose query with case-insensitive search
-        const user = await this.userModel.findOne({
-            email: { $regex: new RegExp(`^${email}$`, 'i') }
-        }).exec();
-        logger.debug(`[FindByEmail] Resultado da query Mongoose: ${user ? 'Usuário encontrado' : 'Usuário não encontrado'}`);
+        // Busca direta por email
+        const user = await this.userModel.findOne({ email }).exec();
+        logger.debug(`[FindByEmail] Resultado da query: ${user ? 'Usuário encontrado' : 'Usuário não encontrado'}`);
         if (user) {
-            logger.debug(`[FindByEmail] Detalhes do usuário (Mongoose): ${JSON.stringify(user.toObject())}`);
+            logger.debug(`[FindByEmail] Detalhes do usuário: ${JSON.stringify(user.toObject())}`);
         }
 
         return this.transformUser(user);
