@@ -12,9 +12,9 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
   private readonly logger = new Logger(JwtAuthGuard.name);
   private readonly publicRoutes = [
     '/api/auth/login',
-    '/api/auth/verify-login',
+    '/api/auth/verify-login-code',
     '/api/auth/register',
-    '/api/auth/verify'
+    '/api/auth/verify-code'
   ];
 
   canActivate(
