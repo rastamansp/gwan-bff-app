@@ -3,6 +3,7 @@ import { BaseService } from '../../../../core/domain/services/base.service';
 import { User } from '../entities/user.entity';
 import { IUserRepository } from '../repositories/user.repository.interface';
 import * as bcrypt from 'bcryptjs';
+import { Email } from '../value-objects/email.value-object';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -16,8 +17,9 @@ export class UserService extends BaseService<User> {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    this.logger.debug(`[FindByEmail] Buscando usuário por email: ${email}`);
-    return this.userRepository.findByEmail(email);
+    const normalizedEmail = Email.create(email).getValue();
+    this.logger.debug(`[FindByEmail] Buscando usuário por email: ${normalizedEmail}`);
+    return this.userRepository.findByEmail(normalizedEmail);
   }
 
   async findByWhatsApp(whatsapp: string): Promise<User | null> {

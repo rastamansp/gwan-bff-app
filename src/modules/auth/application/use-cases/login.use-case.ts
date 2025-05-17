@@ -8,6 +8,7 @@ import { User } from "../../domain/entities/user.entity";
 import { UserService } from "../../domain/services/user.service";
 import { NotificationService } from "../../domain/services/notification.service";
 import { BaseUseCase } from "../../../../core/domain/use-cases/base.use-case";
+import { Email } from "../../domain/value-objects/email.value-object";
 
 @Injectable()
 export class LoginUseCase extends BaseUseCase<User> {
@@ -21,32 +22,34 @@ export class LoginUseCase extends BaseUseCase<User> {
     }
 
     async execute(data: { email: string }): Promise<User> {
-        this.logger.log(`[Login] Iniciando processo de login para: ${data.email}`);
+        // Normaliza o email antes de buscar
+        const normalizedEmail = Email.create(data.email).getValue();
+        this.logger.log(`[Login] Iniciando processo de login para: ${normalizedEmail}`);
 
         try {
-            // Busca o usuário pelo email
-            this.logger.debug(`[Login] Buscando usuário por email: ${data.email}`);
-            const user = await this.userService.findByEmail(data.email);
+            // Busca o usuário pelo email normalizado
+            this.logger.debug(`[Login] Buscando usuário por email: ${normalizedEmail}`);
+            const user = await this.userService.findByEmail(normalizedEmail);
             if (!user) {
-                this.logger.warn(`[Login] Usuário não encontrado: ${data.email}`);
+                this.logger.warn(`[Login] Usuário não encontrado: ${normalizedEmail}`);
                 throw new NotFoundException({
                     message: "Usuário não encontrado",
                     code: "USER_NOT_FOUND",
                     details: {
-                        email: data.email,
+                        email: normalizedEmail,
                     },
                 });
             }
 
             if (!user.isVerified) {
                 this.logger.warn(
-                    `[Login] Tentativa de login com usuário não verificado: ${data.email}`,
+                    `[Login] Tentativa de login com usuário não verificado: ${normalizedEmail}`,
                 );
                 throw new BadRequestException({
                     message: "Usuário não está verificado",
                     code: "USER_NOT_VERIFIED",
                     details: {
-                        email: data.email,
+                        email: normalizedEmail,
                     },
                 });
             }
