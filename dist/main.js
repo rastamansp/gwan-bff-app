@@ -8,7 +8,6 @@ const mongoose = require("mongoose");
 const config_1 = require("@nestjs/config");
 const http_exception_filter_1 = require("./shared/filters/http-exception.filter");
 const logging_interceptor_1 = require("./shared/interceptors/logging.interceptor");
-const not_found_interceptor_1 = require("./shared/interceptors/not-found.interceptor");
 function printRoutesInfo() {
     const logger = new common_1.Logger('Routes');
     const baseUrl = 'http://localhost:3000';
@@ -96,7 +95,7 @@ async function bootstrap() {
             forbidNonWhitelisted: true,
         }));
         app.useGlobalFilters(new http_exception_filter_1.HttpExceptionFilter());
-        app.useGlobalInterceptors(new logging_interceptor_1.LoggingInterceptor(), new not_found_interceptor_1.NotFoundInterceptor());
+        app.useGlobalInterceptors(new logging_interceptor_1.LoggingInterceptor());
         const port = configService.get("port") || 3000;
         await app.listen(port);
         logger.log(`Application is running on: http://localhost:${port}`);

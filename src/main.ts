@@ -6,7 +6,6 @@ import * as mongoose from "mongoose";
 import { ConfigService } from "@nestjs/config";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
-import { NotFoundInterceptor } from "./shared/interceptors/not-found.interceptor";
 
 function printRoutesInfo() {
   const logger = new Logger('Routes');
@@ -127,7 +126,7 @@ async function bootstrap() {
     }));
 
     app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalInterceptors(new LoggingInterceptor(), new NotFoundInterceptor());
+    app.useGlobalInterceptors(new LoggingInterceptor());
 
     const port = configService.get<number>("port") || 3000;
     await app.listen(port);
