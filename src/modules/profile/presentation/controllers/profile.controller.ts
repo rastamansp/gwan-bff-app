@@ -3,8 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nes
 import { JwtAuthGuard } from '../../../../modules/auth/infrastructure/guards/jwt-auth.guard';
 import { UpdateProfileUseCase } from '../../application/use-cases/update-profile.use-case';
 import { GetUserProfileUseCase } from '../../application/use-cases/get-user-profile.use-case';
-import { UpdateProfileDto } from '../../application/dtos/update-profile.dto';
-import { User } from '../../domain/entities/user.entity';
+import { UserUpdateProfileDto, UserProfileResponseDto } from '../../../users/domain/dtos/user.dtos';
 
 @ApiTags('profile')
 @Controller('profile')
@@ -24,7 +23,7 @@ export class ProfileController {
     @ApiResponse({
         status: 200,
         description: 'Perfil obtido com sucesso',
-        type: User
+        type: UserProfileResponseDto
     })
     @ApiResponse({
         status: 401,
@@ -34,7 +33,7 @@ export class ProfileController {
         status: 404,
         description: 'Usuário não encontrado'
     })
-    async getProfile(@Request() req): Promise<User> {
+    async getProfile(@Request() req): Promise<UserProfileResponseDto> {
         return this.getUserProfileUseCase.execute(req.user.id);
     }
 
@@ -43,37 +42,37 @@ export class ProfileController {
     @ApiBearerAuth()
     @ApiOperation({
         summary: 'Atualizar perfil do usuário',
-        description: 'Atualiza o nome e/ou descrição do perfil do usuário autenticado'
+        description: 'Atualiza o nome e/ou WhatsApp do perfil do usuário autenticado'
     })
     @ApiBody({
-        type: UpdateProfileDto,
+        type: UserUpdateProfileDto,
         description: 'Dados para atualização do perfil',
         examples: {
             example1: {
                 value: {
-                    name: 'John Doe',
-                    description: 'Desenvolvedor Full Stack'
+                    name: 'João da Silva',
+                    whatsapp: '+5511999999999'
                 },
                 summary: 'Atualização completa'
             },
             example2: {
                 value: {
-                    name: 'John Doe'
+                    name: 'João da Silva'
                 },
                 summary: 'Atualização apenas do nome'
             },
             example3: {
                 value: {
-                    description: 'Desenvolvedor Full Stack'
+                    whatsapp: '+5511999999999'
                 },
-                summary: 'Atualização apenas da descrição'
+                summary: 'Atualização apenas do WhatsApp'
             }
         }
     })
     @ApiResponse({
         status: 200,
         description: 'Perfil atualizado com sucesso',
-        type: User
+        type: UserProfileResponseDto
     })
     @ApiResponse({
         status: 400,
@@ -89,8 +88,8 @@ export class ProfileController {
     })
     async updateProfile(
         @Request() req,
-        @Body() updateProfileDto: UpdateProfileDto,
-    ): Promise<User> {
+        @Body() updateProfileDto: UserUpdateProfileDto,
+    ): Promise<UserProfileResponseDto> {
         return this.updateProfileUseCase.execute(req.user.id, updateProfileDto);
     }
 } 
