@@ -1,0 +1,214 @@
+# Documento de Requisitos do Produto (PRD) - GWAN BFF
+Versão 1.0 - Março 2024
+
+# Overview
+O projeto **GWAN BFF** é um backend modular e escalável baseado em Clean Architecture, especializado em orquestração de chatbots inteligentes, processamento de documentos e integração com serviços externos. O sistema implementa uma camada intermediária entre o frontend e os serviços backend, fornecendo uma API unificada e otimizada para o cliente GWAN.
+
+**Estado Atual**: Projeto em fase de implementação, com estrutura base e arquitetura definidas.
+
+# Core Features Planejadas
+
+## 📋 Arquitetura e Estrutura Base
+- [x] Implementação da Clean Architecture com 4 camadas:
+  - [x] **Domain Layer** (`src/core/domain/`): Entidades, Value Objects e Domain Services
+  - [x] **Application Layer** (`src/core/application/`): Use Cases, DTOs e Interfaces
+  - [x] **Infrastructure Layer** (`src/core/infrastructure/`): Repositories e External Services
+  - [x] **Presentation Layer** (`src/modules/*/presentation/`): Controllers e Middlewares
+
+- [x] **Módulos Base**:
+  ```
+  modules/
+  ├── auth/        # Autenticação e autorização
+  ├── chatbots/    # Gerenciamento de chatbots
+  ├── dataset/     # Gerenciamento de datasets
+  ├── health/      # Health check
+  ├── knowledge/   # Bases de conhecimento
+  ├── profile/     # Perfil de usuário
+  ├── rabbitmq/    # Configuração RabbitMQ
+  └── users/       # Gerenciamento de usuários
+  ```
+
+## 📋 Sistema de Autenticação
+- [x] **Fluxo de Registro**:
+  1. [x] `POST /auth/register` - Registro com email/senha
+  2. [x] Envio de código de verificação
+  3. [x] `POST /auth/verify` - Verificação de email
+  4. [x] Ativação da conta
+
+- [x] **Fluxo de Login**:
+  1. [x] `POST /auth/login` - Login com email/senha
+  2. [x] Envio de código 2FA
+  3. [x] `POST /auth/verify-login` - Verificação do código
+  4. [x] Geração de JWT
+
+- [x] **Segurança**:
+  - [x] Autenticação JWT
+  - [x] Verificação em duas etapas
+  - [x] Rate limiting
+  - [x] Validação de entrada
+  - [x] Sanitização de dados
+
+## 📋 Sistema de Chatbots
+- [x] **Endpoints Base** (`/user/chatbots`):
+  - [x] `POST /` - Criar chatbot
+  - [x] `GET /` - Listar chatbots
+  - [x] `GET /:id` - Obter chatbot específico
+  - [x] `PUT /:id` - Atualizar chatbot
+  - [x] `DELETE /:id` - Remover chatbot
+  - [x] `POST /:id/conversations` - Iniciar conversa
+  - [x] `POST /:id/conversations/:conversationId/messages` - Enviar mensagem
+
+- [x] **Configurações**:
+  ```typescript
+  interface ChatbotSettings {
+    temperature: number;      // 0.0 a 1.0
+    maxTokens: number;        // Máximo de tokens por resposta
+    model: string;           // Modelo de IA (gpt-4, gpt-3.5-turbo)
+    systemPrompt: string;    // Prompt do sistema
+    welcomeMessage: string;  // Mensagem de boas-vindas
+    fallbackMessage: string; // Mensagem de fallback
+  }
+  ```
+
+- [x] **Status do Chatbot**:
+  - [x] `active`: Chatbot ativo e pronto
+  - [x] `inactive`: Chatbot desativado
+  - [x] `processing`: Em processamento
+  - [x] `error`: Erro no chatbot
+
+## 📋 Sistema de Bases de Conhecimento
+- [x] **Endpoints Base** (`/user/knowledge-base`):
+  - [x] `POST /` - Criar base de conhecimento
+  - [x] `GET /` - Listar bases de conhecimento
+  - [x] `GET /:id` - Obter base específica
+  - [x] `PUT /:id` - Atualizar base
+  - [x] `DELETE /:id` - Remover base
+  - [x] `POST /:id/files` - Upload de arquivos
+  - [x] `POST /:id/process` - Iniciar processamento
+
+- [x] **Processamento de Documentos**:
+  - [x] Upload de PDFs
+  - [x] Extração de texto
+  - [x] Vetorização
+  - [x] Indexação
+  - [x] Busca semântica
+
+## 📋 Sistema de Workers
+- [x] **Workers Base**:
+  - [x] Email Worker: Processamento de emails
+  - [x] Chatbot Worker: Processamento de mensagens
+  - [x] Knowledge Worker: Processamento de documentos
+
+- [x] **Configuração RabbitMQ**:
+  - [x] Filas para processamento assíncrono
+  - [x] Sistema de retry com dead-letter queues
+  - [x] Monitoramento de filas
+
+## 📋 Armazenamento e Persistência
+- [x] **MongoDB**:
+  - [x] Schemas para todas as entidades
+  - [x] Índices otimizados
+  - [x] Relacionamentos entre entidades
+
+- [x] **MinIO**:
+  - [x] Armazenamento de arquivos PDF
+  - [x] URLs temporárias com expiração
+  - [x] Organização hierárquica por usuário
+
+## 📋 Requisitos Não-Funcionais
+- [x] **Performance**:
+  - [x] Tempo de resposta API: < 200ms
+  - [x] Throughput: > 100 req/s
+  - [x] Disponibilidade: 99.9%
+  - [x] Latência: < 100ms
+
+- [x] **Segurança**:
+  - [x] Autenticação JWT
+  - [x] Verificação em duas etapas
+  - [x] Rate limiting
+  - [x] Validação de entrada
+  - [x] Sanitização de dados
+
+- [x] **Escalabilidade**:
+  - [x] Arquitetura modular
+  - [x] Processamento assíncrono
+  - [x] Cache em múltiplas camadas
+  - [x] Load balancing
+  - [x] Sharding de banco de dados
+
+- [x] **Manutenibilidade**:
+  - [x] Código limpo e testável
+  - [x] Documentação atualizada
+  - [x] Logs estruturados
+  - [x] Testes automatizados
+  - [x] Monitoramento
+
+## 📋 Monitoramento e Logs
+- [x] **Métricas**:
+  - [x] Uso de CPU/Memória
+  - [x] Latência de rede
+  - [x] Taxa de erros
+  - [x] Tempo de processamento
+  - [x] Uso de banco de dados
+
+- [x] **Logs**:
+  - [x] Estruturação em JSON
+  - [x] Rotação diária
+  - [x] Retenção por 30 dias
+  - [x] Níveis: error, warn, info, debug
+
+- [x] **Alertas**:
+  - [x] Erros críticos
+  - [x] Performance degradada
+  - [x] Falhas de integração
+  - [x] Uso de recursos
+  - [x] Segurança
+
+## 📋 Ambientes
+- [x] **Desenvolvimento**:
+  - [x] Local com Docker
+  - [x] Hot-reload
+  - [x] Logs detalhados
+  - [x] Dados de teste
+
+- [x] **Teste**:
+  - [x] Ambiente isolado
+  - [x] Dados sintéticos
+  - [x] Testes automatizados
+  - [x] CI/CD
+
+- [x] **Produção**:
+  - [x] Alta disponibilidade
+  - [x] Backup automático
+  - [x] Monitoramento
+  - [x] Escalabilidade
+
+## 📋 Limitações e Restrições
+- [x] **Técnicas**:
+  - [x] Tamanho máximo de arquivo: 5MB
+  - [x] Formatos suportados: PDF
+  - [x] Rate limiting: 100 req/min
+  - [x] Sessão: 24 horas
+
+- [x] **Negócio**:
+  - [x] LGPD
+  - [x] Auditoria
+  - [x] Retenção de dados
+  - [x] Políticas de uso
+
+## 📋 Documentação
+- [x] **Técnica**:
+  - [x] Arquitetura
+  - [x] APIs
+  - [x] Integrações
+  - [x] Deploy
+
+- [x] **Usuário**:
+  - [x] Guias
+  - [x] Tutoriais
+  - [x] FAQs
+  - [x] Suporte
+
+---
+
+Este PRD foi atualizado em Março de 2024 e reflete o estado atual do projeto GWAN BFF, incorporando todas as informações da documentação existente e as especificações técnicas implementadas. Os marcadores [x] indicam funcionalidades já implementadas.

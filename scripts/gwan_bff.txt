@@ -1,0 +1,383 @@
+# Documento de Requisitos do Produto (PRD) - GWAN BFF
+Versão 1.0 - Março 2024
+
+## 1. Visão Geral do Produto
+
+### 1.1 Propósito
+O GWAN BFF (Backend for Frontend) é uma aplicação que implementa uma camada intermediária entre o frontend e os serviços backend, seguindo os princípios da Clean Architecture. O sistema é especializado em gerenciamento de chatbots inteligentes, bases de conhecimento e processamento de documentos, fornecendo uma API unificada e otimizada para o cliente GWAN.
+
+### 1.2 Público-Alvo
+- **Desenvolvedores Frontend**: Consumidores da API RESTful
+- **Usuários Finais**: Administradores e usuários do sistema GWAN
+- **Integradores**: Equipes que precisam integrar com o sistema via webhooks e eventos
+- **Analistas**: Profissionais que utilizam os dados e métricas do sistema
+
+### 1.3 Principais Diferenciais
+- Implementação da Clean Architecture para código limpo e manutenível
+- Sistema de chatbots inteligentes com processamento de linguagem natural
+- Gerenciamento avançado de bases de conhecimento
+- Processamento assíncrono de documentos
+- API RESTful documentada e versionada
+- Sistema de autenticação robusto com 2FA
+
+## 2. Arquitetura do Sistema
+
+### 2.1 Clean Architecture
+O sistema é estruturado em quatro camadas principais:
+
+#### 2.1.1 Domain Layer (`src/core/domain/`)
+- **Entidades**: Objetos de negócio com regras e comportamentos
+- **Value Objects**: Objetos imutáveis que representam conceitos do domínio
+- **Domain Services**: Serviços que implementam regras de negócio complexas
+
+#### 2.1.2 Application Layer (`src/core/application/`)
+- **Use Cases**: Implementações dos casos de uso da aplicação
+- **DTOs**: Objetos de transferência de dados
+- **Interfaces**: Contratos para serviços externos
+
+#### 2.1.3 Infrastructure Layer (`src/core/infrastructure/`)
+- **Repositories**: Implementações concretas dos repositórios
+- **External Services**: Implementações de serviços externos
+- **Adaptadores**: Adaptadores para serviços de terceiros
+
+#### 2.1.4 Presentation Layer (`src/modules/*/presentation/`)
+- **Controllers**: Endpoints da API REST
+- **Middlewares**: Interceptadores de requisições
+- **Validators**: Validadores de entrada
+
+### 2.2 Módulos do Sistema
+```
+modules/
+├── auth/        # Autenticação e autorização
+├── chatbots/    # Gerenciamento de chatbots
+├── dataset/     # Gerenciamento de datasets
+├── health/      # Health check
+├── knowledge/   # Bases de conhecimento
+├── profile/     # Perfil de usuário
+├── rabbitmq/    # Configuração RabbitMQ
+└── users/       # Gerenciamento de usuários
+```
+
+## 3. APIs e Endpoints
+
+### 3.1 Autenticação
+Todos os endpoints (exceto `/health`) requerem autenticação via JWT:
+```
+Authorization: Bearer <token>
+```
+
+### 3.2 Endpoints Principais
+
+#### 3.2.1 Chatbots (`/user/chatbots`)
+- **POST /** - Criar chatbot
+  ```json
+  {
+    "name": "Chatbot de Suporte",
+    "description": "Chatbot para atendimento ao cliente",
+    "knowledgeBaseId": "507f1f77bcf86cd799439011",
+    "settings": {
+      "temperature": 0.7,
+      "maxTokens": 1000,
+      "model": "gpt-4",
+      "systemPrompt": "Você é um assistente virtual...",
+      "welcomeMessage": "Olá! Como posso ajudar?",
+      "fallbackMessage": "Desculpe, não entendi..."
+    }
+  }
+  ```
+
+- **GET /** - Listar chatbots
+  - Query params: `page`, `limit`, `status`
+  - Retorna lista paginada de chatbots
+
+- **GET /:id** - Obter chatbot específico
+  - Inclui estatísticas e configurações detalhadas
+
+- **PUT /:id** - Atualizar chatbot
+  - Permite atualização parcial das configurações
+
+- **DELETE /:id** - Remover chatbot
+
+- **POST /:id/conversations** - Iniciar conversa
+  ```json
+  {
+    "message": "Olá, preciso de ajuda"
+  }
+  ```
+
+- **POST /:id/conversations/:conversationId/messages** - Enviar mensagem
+  ```json
+  {
+    "message": "Meu pedido #12345 está atrasado"
+  }
+  ```
+
+#### 3.2.2 Knowledge Base (`/user/knowledge-base`)
+- **POST /** - Criar base de conhecimento
+- **GET /** - Listar bases de conhecimento
+- **GET /:id** - Obter base específica
+- **PUT /:id** - Atualizar base
+- **DELETE /:id** - Remover base
+- **POST /:id/files** - Upload de arquivos
+- **POST /:id/process** - Iniciar processamento
+
+#### 3.2.3 Users (`/user`)
+- **POST /register** - Registro de usuário
+- **POST /verify** - Verificação de email
+- **POST /login** - Login
+- **POST /verify-login** - Verificação de login
+- **GET /profile** - Perfil do usuário
+- **PUT /profile** - Atualizar perfil
+
+### 3.3 Status Codes e Erros
+- `200 OK`: Sucesso
+- `201 Created`: Recurso criado
+- `400 Bad Request`: Dados inválidos
+- `401 Unauthorized`: Não autenticado
+- `403 Forbidden`: Sem permissão
+- `404 Not Found`: Recurso não encontrado
+- `409 Conflict`: Conflito de dados
+- `500 Internal Server Error`: Erro interno
+
+## 4. Funcionalidades Detalhadas
+
+### 4.1 Sistema de Chatbots
+
+#### 4.1.1 Configurações
+```typescript
+interface ChatbotSettings {
+  temperature: number;      // 0.0 a 1.0
+  maxTokens: number;        // Máximo de tokens por resposta
+  model: string;           // Modelo de IA (gpt-4, gpt-3.5-turbo)
+  systemPrompt: string;    // Prompt do sistema
+  welcomeMessage: string;  // Mensagem de boas-vindas
+  fallbackMessage: string; // Mensagem de fallback
+}
+```
+
+#### 4.1.2 Status do Chatbot
+- `active`: Chatbot ativo e pronto
+- `inactive`: Chatbot desativado
+- `processing`: Em processamento
+- `error`: Erro no chatbot
+
+#### 4.1.3 Métricas
+- Total de conversas
+- Avaliação média
+- Última atividade
+- Taxa de sucesso
+- Tempo de resposta
+
+### 4.2 Sistema de Bases de Conhecimento
+
+#### 4.2.1 Processamento de Documentos
+- Upload de PDFs
+- Extração de texto
+- Vetorização
+- Indexação
+- Busca semântica
+
+#### 4.2.2 Gerenciamento
+- Criação de bases
+- Upload de arquivos
+- Processamento assíncrono
+- Versionamento
+- Backup
+
+### 4.3 Sistema de Autenticação
+
+#### 4.3.1 Fluxo de Registro
+1. Registro com email/senha
+2. Envio de código de verificação
+3. Verificação de email
+4. Ativação da conta
+
+#### 4.3.2 Fluxo de Login
+1. Login com email/senha
+2. Envio de código 2FA
+3. Verificação do código
+4. Geração de JWT
+
+## 5. Requisitos Técnicos
+
+### 5.1 Stack Tecnológica
+- **Backend**: NestJS com TypeScript
+- **Banco de Dados**: MongoDB
+- **Message Broker**: RabbitMQ
+- **Armazenamento**: MinIO
+- **Email**: Nodemailer
+
+### 5.2 Requisitos de Sistema
+- Node.js v20+
+- MongoDB v6+
+- RabbitMQ v3.12+
+- MinIO v8+
+- Servidor SMTP
+
+### 5.3 Dependências Principais
+```json
+{
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/mongoose": "^10.0.0",
+    "mongoose": "^7.0.0",
+    "amqplib": "^0.10.0",
+    "minio": "^7.0.0",
+    "nodemailer": "^6.0.0"
+  }
+}
+```
+
+## 6. Requisitos Não-Funcionais
+
+### 6.1 Performance
+- Tempo de resposta API: < 200ms
+- Throughput: > 100 req/s
+- Disponibilidade: 99.9%
+- Latência: < 100ms
+
+### 6.2 Segurança
+- Autenticação JWT
+- Verificação em duas etapas
+- Rate limiting
+- Validação de entrada
+- Sanitização de dados
+
+### 6.3 Escalabilidade
+- Arquitetura modular
+- Processamento assíncrono
+- Cache em múltiplas camadas
+- Load balancing
+- Sharding de banco de dados
+
+### 6.4 Manutenibilidade
+- Código limpo e testável
+- Documentação atualizada
+- Logs estruturados
+- Testes automatizados
+- Monitoramento
+
+## 7. Monitoramento e Logs
+
+### 7.1 Métricas
+- Uso de CPU/Memória
+- Latência de rede
+- Taxa de erros
+- Tempo de processamento
+- Uso de banco de dados
+
+### 7.2 Logs
+- Estruturação em JSON
+- Rotação diária
+- Retenção por 30 dias
+- Níveis: error, warn, info, debug
+
+### 7.3 Alertas
+- Erros críticos
+- Performance degradada
+- Falhas de integração
+- Uso de recursos
+- Segurança
+
+## 8. Ambientes
+
+### 8.1 Desenvolvimento
+- Local com Docker
+- Hot-reload
+- Logs detalhados
+- Dados de teste
+
+### 8.2 Teste
+- Ambiente isolado
+- Dados sintéticos
+- Testes automatizados
+- CI/CD
+
+### 8.3 Produção
+- Alta disponibilidade
+- Backup automático
+- Monitoramento
+- Escalabilidade
+
+## 9. Roadmap
+
+### Fase 1 - MVP (3 meses)
+1. **Mês 1**
+   - Autenticação básica
+   - CRUD de chatbots
+   - Upload de documentos
+
+2. **Mês 2**
+   - Processamento de documentos
+   - Integração com IA
+   - Sistema de vetores
+
+3. **Mês 3**
+   - Interface básica
+   - Testes
+   - Documentação
+
+### Fase 2 - Expansão (3 meses)
+1. **Mês 4**
+   - Recursos avançados
+   - Performance
+   - Cache
+
+2. **Mês 5**
+   - Analytics
+   - Monitoramento
+   - Logs
+
+3. **Mês 6**
+   - Integrações
+   - Otimizações
+   - Escalabilidade
+
+### Fase 3 - Otimização (3 meses)
+1. **Mês 7**
+   - Machine Learning
+   - Análise de sentimentos
+   - Recomendações
+
+2. **Mês 8**
+   - Automações
+   - Workflows
+   - Integrações
+
+3. **Mês 9**
+   - Refinamentos
+   - Documentação
+   - Treinamento
+
+## 10. Limitações e Restrições
+
+### 10.1 Técnicas
+- Tamanho máximo de arquivo: 5MB
+- Formatos suportados: PDF
+- Rate limiting: 100 req/min
+- Sessão: 24 horas
+
+### 10.2 Negócio
+- LGPD
+- Auditoria
+- Retenção de dados
+- Políticas de uso
+
+## 11. Documentação
+
+### 11.1 Técnica
+- Arquitetura
+- APIs
+- Integrações
+- Deploy
+
+### 11.2 Usuário
+- Guias
+- Tutoriais
+- FAQs
+- Suporte
+
+---
+
+Este PRD foi atualizado em Março de 2024 e reflete o estado atual do projeto GWAN BFF, incorporando todas as informações da documentação existente e as especificações técnicas implementadas.

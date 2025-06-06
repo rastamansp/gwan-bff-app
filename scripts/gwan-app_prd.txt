@@ -1,0 +1,497 @@
+# Overview  
+O projeto **GWAN BFF** é um backend modular e escalável baseado em Clean Architecture, voltado para orquestrar chatbots com IA, processamento de documentos e integração com serviços externos. Ele resolve a necessidade de uma API robusta para gestão de usuários, perfis, chatbots e bases de conhecimento, tudo com execução assíncrona via workers. É voltado para equipes técnicas que desenvolvem automações inteligentes e interfaces conversacionais.
+
+**Estado Atual**: Projeto em fase de planejamento e especificação técnica. Ambiente de desenvolvimento e estrutura base a serem criados.
+
+# Core Features Planejadas  
+
+## 📋 Autenticação e Registro (Fluxo sem Senha)
+- [ ] **Registro Simplificado**: Usuário informa nome, email e WhatsApp (sem senha)
+- [ ] **Ativação por Email**: Sistema envia código de 6 dígitos via email
+- [ ] **Confirmação de Ativação**: Usuário envia email + código para ativar conta
+- [ ] **Login por Código**: A cada login, usuário informa email e recebe código por email
+- [ ] **Autenticação Final**: Usuário envia email + código e recebe token JWT
+- [ ] **Value Objects**: Email e WhatsApp com validações específicas
+- [ ] **Sistema de Notificações**: Email para códigos e WhatsApp para notificações opcionais
+
+### Fluxo Detalhado de Autenticação
+
+#### Registro de Novo Usuário
+1. **POST /auth/register** - Usuário envia:
+   ```json
+   {
+     "name": "João Silva",
+     "email": "joao@exemplo.com", 
+     "whatsapp": "+5511999999999"
+   }
+   ```
+2. **Sistema gera código** de ativação de 6 dígitos
+3. **Email enviado** automaticamente via worker
+4. **Resposta**: Confirmação de envio (sem dados sensíveis)
+
+#### Ativação de Conta
+5. **POST /auth/activate** - Usuário envia:
+   ```json
+   {
+     "email": "joao@exemplo.com",
+     "code": "123456"
+   }
+   ```
+6. **Sistema valida** código e ativa conta
+7. **Resposta**: Confirmação de ativação
+
+#### Login (A Cada Acesso)
+8. **POST /auth/login** - Usuário envia apenas email:
+   ```json
+   {
+     "email": "joao@exemplo.com"
+   }
+   ```
+9. **Sistema gera código** de login de 6 dígitos
+10. **Email enviado** automaticamente via worker
+11. **Resposta**: Confirmação de envio
+
+#### Verificação e Token
+12. **POST /auth/verify-login** - Usuário envia:
+    ```json
+    {
+      "email": "joao@exemplo.com",
+      "code": "654321"
+    }
+    ```
+13. **Sistema valida** código e gera tokens
+14. **Resposta**: Token de acesso + dados do usuário
+    ```json
+    {
+      "accessToken": "jwt...",
+      "refreshToken": "jwt...",
+      "user": { /* dados do usuário */ }
+    }
+    ```
+
+## 📋 Gestão de Chatbots
+- [ ] CRUD completo de chatbots com configurações avançadas
+- [ ] Integração com OpenAI (GPT-3.5/4) para respostas inteligentes
+- [ ] Configurações personalizáveis: modelo, temperatura, max tokens, prompt system
+- [ ] Vinculação com bases de conhecimento para respostas contextualizadas
+- [ ] Sistema de conversas persistidas com histórico
+
+## 📋 Base de Conhecimento (Knowledge Base)
+
+### Fluxo Detalhado de Knowledge Base
+
+#### Criação de Base de Conhecimento
+1. **POST /user/knowledge-base** - Usuário logado cria base informando:
+   ```json
+   {
+     "name": "Base de Suporte Técnico",
+     "description": "Base contendo manuais e documentação técnica"
+   }
+   ```
+2. **Sistema cria** registro no MongoDB
+3. **Resposta**: Dados da base criada com ID
+
+#### Upload de Arquivo  
+4. **POST /user/files/upload** - Upload de arquivo para MinIO:
+   ```
+   Content-Type: multipart/form-data
+   - file: [PDF File] (máximo 5MB)
+   - knowledgeBaseId: "507f1f77bcf86cd799439011"
+   ```
+5. **Arquivo salvo** no bucket MinIO organizado por usuário
+6. **Metadados salvos** no MongoDB
+7. **Resposta**: Dados do arquivo com fileId
+
+#### Listagem e Consulta
+8. **GET /user/knowledge-base** - Lista todas as bases do usuário
+9. **GET /user/knowledge-base/:id** - Busca base específica por ID
+
+#### Processamento Assíncrono
+10. **POST /user/knowledge-base/:id/start-process** - Inicia processamento:
+    ```json
+    {
+      "fileId": "507f1f77bcf86cd799439014"
+    }
+    ```
+11. **Sistema envia** para fila RabbitMQ:
+    ```json
+    {
+      "userId": "507f1f77bcf86cd799439012",
+      "knowledgeBaseId": "507f1f77bcf86cd799439011", 
+      "fileId": "507f1f77bcf86cd799439014"
+    }
+    ```
+12. **Knowledge Worker** processa arquivo
+13. **Status atualizado** no MongoDB: processing → completed/failed
+
+#### Exclusão
+14. **DELETE /user/files/:fileId** - Remove arquivo do MinIO e base
+15. **Sistema remove** arquivo do bucket
+16. **Sistema remove** metadados do MongoDB
+17. **Sistema atualiza** contadores da base de conhecimento
+
+### Funcionalidades Técnicas
+- [ ] **CRUD de Bases**: Criar, listar, buscar e excluir bases de conhecimento
+- [ ] **Upload MinIO**: Upload de documentos PDF para bucket por usuário
+- [ ] **Processamento Assíncrono**: Fila RabbitMQ para processamento de documentos
+- [ ] **Indexação Semântica**: Geração de embeddings via OpenAI
+- [ ] **Sistema de Chunking**: Divisão de documentos longos em chunks
+- [ ] **Status Tracking**: Acompanhamento do status de processamento
+- [ ] **MongoDB + Mongoose**: Armazenamento de metadados e relações
+- [ ] **Organização Hierárquica**: Arquivos organizados por usuário no MinIO
+
+## 📋 Orquestração com Workers RabbitMQ
+- [ ] **Email Worker**: Processamento de emails de verificação, notificações e recuperação de senha
+- [ ] **Chatbot Worker**: Processamento de mensagens, treinamento e geração de embeddings
+- [ ] **Knowledge Worker**: Processamento de documentos, indexação e embedding generation
+- [ ] Sistema de retry com dead-letter queues
+- [ ] Monitoramento de filas e métricas de performance
+
+## 📋 Gestão de Usuários e Perfis
+- [ ] Sistema completo de perfis de usuário
+- [ ] Configurações de preferências (notificações, idioma)
+- [ ] Módulo administrativo para gestão de usuários
+- [ ] Controle de papéis (user, admin, manager)
+- [ ] APIs para CRUD completo de usuários
+
+## 📋 Armazenamento de Arquivos MinIO
+- [ ] Integração completa com MinIO para armazenamento de PDFs
+- [ ] URLs temporárias com expiração (24h)
+- [ ] Organização hierárquica por usuário
+- [ ] Sistema de backup e versionamento
+- [ ] Metadados completos em MongoDB
+
+## 📋 Observabilidade e Monitoramento
+- [ ] Logs estruturados em JSON com rotação
+- [ ] Health checks para todos os serviços
+- [ ] Métricas de performance por endpoint
+- [ ] Monitoramento de workers e filas RabbitMQ
+- [ ] Rastreamento de erros e retries
+- [ ] Documentação Swagger completa
+
+# User Experience Planejada
+
+- **User Personas**:
+  - 📋 Administrador de sistema (módulo admin)
+  - 📋 Desenvolvedor frontend/API consumer (API REST)
+  - 📋 Operador de chatbot/IA (interface de gestão)
+
+- **Key Flows a Implementar**:
+  1. [ ] **Registro Simplificado**: Usuário informa nome, email e WhatsApp (sem senha)
+  2. [ ] **Ativação por Email**: Usuário recebe código e ativa conta
+  3. [ ] **Login por Código**: A cada login, usuário informa email e recebe código por email
+  4. [ ] **Autenticação com Token**: Usuário envia código e recebe token de acesso
+  5. [ ] **Criação de Base**: Usuário cria base de conhecimento (nome + descrição)
+  6. [ ] **Upload de Arquivo**: Upload de PDF para MinIO vinculado à base
+  7. [ ] **Listagem de Bases**: Usuário lista todas suas bases de conhecimento
+  8. [ ] **Consulta por ID**: Usuário busca base específica por ID
+  9. [ ] **Iniciar Processamento**: API start-process envia dados para RabbitMQ
+  10. [ ] **Processamento Worker**: Knowledge Worker processa arquivo e gera embeddings
+  11. [ ] **Exclusão de Arquivo**: Remove arquivo do MinIO e metadados do MongoDB
+  12. [ ] **Criação de Chatbot**: Criação de chatbot vinculado à base de conhecimento
+  13. [ ] **Respostas Contextualizadas**: Chatbot responde com base nos documentos processados
+  14. [ ] **Sistema de Conversas**: Sistema de conversas com histórico persistido
+  15. [ ] **Monitoramento**: Monitoramento em tempo real via logs estruturados
+
+- **UI/UX Considerations a Implementar**:
+  - [ ] API-first: 30+ endpoints REST autenticados documentados
+  - [ ] Swagger UI completa em `/api/docs`
+  - [ ] Sistema de status para acompanhamento de processamento
+  - [ ] URLs temporárias para download seguro de arquivos
+  - [ ] Sistema de notificações multi-canal
+
+# Technical Architecture a Implementar
+
+## 📋 Camadas Clean Architecture
+- **Domain**: Entidades User, Chatbot, KnowledgeBase, Document com regras de negócio
+- **Application**: 15+ use cases (RegisterUser, CreateChatbot, ProcessDocument, etc.)
+- **Infrastructure**: Integração com MongoDB, SMTP, RabbitMQ, MinIO, OpenAI
+- **Presentation**: API REST NestJS com 30+ controllers autenticados
+
+## 📋 Workers RabbitMQ
+- `email.notification`, `email.verification`, `email.password-reset`
+- `chatbot.message`, `chatbot.training`, `chatbot.embedding`
+- `knowledge.document`, `knowledge.indexing`, `knowledge.embedding`
+- Sistema de retry, dead-letter e métricas
+
+## 📋 Data Models a Implementar (MongoDB + Mongoose)
+- `User` (nome, email, whatsapp, status de ativação, códigos temporários)
+- `KnowledgeBase` (userId, name, description, status, fileCount, createdAt, updatedAt)
+- `File` (userId, knowledgeBaseId, filename, originalName, size, mimeType, bucketPath, status)
+- `Document` (fileId, chunks, embeddings, processedAt, metadata)
+- `Chatbot` (userId, knowledgeBaseId, configurações e IA)
+- `Conversation` e `Message` (histórico de conversas)
+- `VerificationCode` (códigos temporários de ativação e login)
+- `UserSession` (sessões ativas e tokens JWT)
+- `ProcessingQueue` (userId, knowledgeBaseId, fileId, status, attempts)
+
+## 📋 Infraestrutura a Configurar
+- [ ] MongoDB 6+ (usuários, bots, knowledge, conversas)
+- [ ] MinIO (documentos com URLs temporárias)
+- [ ] Redis (cache e locks distribuídos)
+- [ ] RabbitMQ (filas com monitoramento)
+- [ ] OpenAI API (embeddings e chat completion)
+- [ ] Docker + Portainer (containerização)
+- [ ] Logs estruturados + Health checks
+
+# Development Roadmap
+
+## 🚀 Fase 1 – Setup e Base (2-3 semanas)
+- [ ] Configuração do ambiente de desenvolvimento
+- [ ] Inicialização do projeto NestJS com TypeScript
+- [ ] Configuração Docker Compose para desenvolvimento
+- [ ] Setup MongoDB + Redis + RabbitMQ + MinIO
+- [ ] Estrutura base Clean Architecture
+- [ ] Configuração de linting, formatting e testes
+- [ ] CI/CD básico com GitHub Actions
+- [ ] Documentação inicial do projeto
+
+## 📋 Fase 2 – Autenticação e Core (3-4 semanas)
+- [ ] **Sistema Autenticação sem Senha**
+  - [ ] Value Objects (Email, WhatsApp)
+  - [ ] Registro com nome, email e WhatsApp
+  - [ ] Geração e envio de códigos por email
+  - [ ] Ativação de conta via código
+  - [ ] Login por código (sem senha)
+  - [ ] JWT token generation e middleware
+- [ ] **Módulo de Usuários**
+  - [ ] CRUD de usuários
+  - [ ] Gestão de perfis com WhatsApp
+  - [ ] Status de ativação da conta
+  - [ ] Controle de papéis e permissões
+- [ ] **Sistema de Verificação**
+  - [ ] Email Worker para códigos de ativação
+  - [ ] Email Worker para códigos de login
+  - [ ] Validação e expiração de códigos
+  - [ ] Rate limiting para envio de códigos
+- [ ] **Testes e Documentação**
+  - [ ] Testes unitários para autenticação
+  - [ ] Testes de integração do fluxo completo
+  - [ ] Documentação Swagger dos endpoints
+
+## 📋 Fase 3 – Upload e Armazenamento (2-3 semanas)
+- [ ] Integração com MinIO
+- [ ] Sistema de upload de arquivos PDF
+- [ ] Validação e metadados de arquivos
+- [ ] URLs temporárias com expiração
+- [ ] Organização hierárquica por usuário
+- [ ] APIs de gestão de arquivos
+- [ ] Testes de upload e storage
+
+## 📋 Fase 4 – Workers e Processamento (3-4 semanas)
+- [ ] Configuração RabbitMQ
+- [ ] Email Worker para notificações
+- [ ] Knowledge Worker para processamento de PDFs
+- [ ] Sistema de retry e dead-letter queues
+- [ ] Monitoramento de filas
+- [ ] Métricas de performance
+- [ ] Logs estruturados
+
+## 📋 Fase 5 – Knowledge Base e IA (4-5 semanas)
+- [ ] **CRUD de Knowledge Base**
+  - [ ] POST /user/knowledge-base (criar com nome + descrição)
+  - [ ] GET /user/knowledge-base (listar todas do usuário)
+  - [ ] GET /user/knowledge-base/:id (buscar por ID)
+  - [ ] DELETE /user/knowledge-base/:id (excluir base)
+- [ ] **Upload e Gestão de Arquivos**
+  - [ ] POST /user/files/upload (upload para MinIO + metadados MongoDB)
+  - [ ] GET /user/files (listar arquivos do usuário)
+  - [ ] DELETE /user/files/:fileId (remover do MinIO + MongoDB)
+  - [ ] Organização hierárquica por usuário no MinIO
+- [ ] **API de Processamento**
+  - [ ] POST /user/knowledge-base/:id/start-process (iniciar processamento)
+  - [ ] Sistema de fila RabbitMQ (userId, knowledgeBaseId, fileId)
+  - [ ] Status tracking (pending → processing → completed/failed)
+- [ ] **Knowledge Worker e IA**
+  - [ ] Integração OpenAI para embeddings
+  - [ ] Sistema de chunking de documentos
+  - [ ] Indexação semântica
+  - [ ] Processamento assíncrono via RabbitMQ
+- [ ] **MongoDB + Mongoose**
+  - [ ] Schemas para KnowledgeBase, File, Document
+  - [ ] Relacionamentos entre entidades
+  - [ ] Índices para performance
+  - [ ] Validações e constraints
+
+## 📋 Fase 6 – Chatbots e Conversas (3-4 semanas)
+- [ ] CRUD de chatbots
+- [ ] Integração OpenAI para chat completion
+- [ ] Sistema de conversas e histórico
+- [ ] Chatbot Worker para processamento
+- [ ] Configurações avançadas (temperatura, tokens)
+- [ ] Vinculação com knowledge base
+- [ ] APIs de chat em tempo real
+
+## 📋 Fase 7 – Perfis e Administração (2-3 semanas)
+- [ ] Sistema de perfis de usuário
+- [ ] Configurações e preferências
+- [ ] Módulo administrativo
+- [ ] Gestão de usuários para admins
+- [ ] Relatórios e métricas básicas
+- [ ] Configurações do sistema
+
+## 📋 Fase 8 – Monitoramento e Deploy (2-3 semanas)
+- [ ] Implementação Prometheus + Grafana
+- [ ] Alertas automáticos
+- [ ] Health checks avançados
+- [ ] Configuração para produção
+- [ ] Scripts de deploy
+- [ ] Documentação completa
+- [ ] Testes E2E
+
+# Logical Dependency Chain a Implementar
+
+## 🚀 Setup Inicial (Semana 1)
+1. [ ] Criação do repositório Git
+2. [ ] Inicialização projeto NestJS
+3. [ ] Configuração TypeScript e ESLint
+4. [ ] Setup Docker Compose local
+5. [ ] Configuração variáveis ambiente
+
+## 📋 Infraestrutura Base (Semana 2)
+6. [ ] Configuração MongoDB local
+7. [ ] Setup Redis para cache
+8. [ ] Configuração RabbitMQ
+9. [ ] Setup MinIO local
+10. [ ] Testes de conectividade
+
+## 🔐 Autenticação (Semana 3-4)
+11. [ ] Value Objects (Email e WhatsApp) com validações
+12. [ ] Use cases: Register, Activate, Login, VerifyLogin  
+13. [ ] Sistema de geração e validação de códigos
+14. [ ] Email Workers para envio de códigos
+15. [ ] JWT middleware para proteção de rotas
+16. [ ] Rate limiting para prevenção de spam
+17. [ ] Testes unitários e integração
+
+## 📁 Upload e Storage (Semana 5-6)
+16. [ ] Integração MinIO
+17. [ ] Upload de arquivos
+18. [ ] Validação e metadados
+19. [ ] APIs de gestão
+20. [ ] Testes de integração
+
+## ⚙️ Workers (Semana 7-9)
+21. [ ] RabbitMQ workers base
+22. [ ] Email worker
+23. [ ] Sistema retry/dead-letter
+24. [ ] Monitoramento
+25. [ ] Logs estruturados
+
+## 🤖 IA e Knowledge (Semana 10-13)
+26. [ ] **CRUD Knowledge Base** com MongoDB/Mongoose
+27. [ ] **Upload de arquivos** para MinIO + metadados
+28. [ ] **API start-process** para iniciar processamento
+29. [ ] **Fila RabbitMQ** (userId, knowledgeBaseId, fileId)
+30. [ ] **Knowledge Worker** para processamento
+31. [ ] **Integração OpenAI** para embeddings
+32. [ ] **Sistema de chunking** de documentos
+33. [ ] **Indexação semântica** e busca por similaridade
+34. [ ] **Exclusão de arquivos** do MinIO + MongoDB
+
+## 💬 Chatbots (Semana 14-16)
+35. [ ] CRUD chatbots
+36. [ ] Chat completion
+37. [ ] Sistema conversas
+38. [ ] Vinculação knowledge
+39. [ ] APIs tempo real
+
+## 👤 Perfis e Admin (Semana 17-19)
+40. [ ] Sistema perfis
+41. [ ] Módulo admin
+42. [ ] Gestão usuários
+43. [ ] Configurações
+44. [ ] Relatórios básicos
+
+## 📊 Monitoramento (Semana 20-22)
+45. [ ] Métricas avançadas
+46. [ ] Alertas automáticos
+47. [ ] Deploy produção
+48. [ ] Documentação final
+49. [ ] Testes E2E
+
+# Especificações Técnicas
+
+## 🛠️ Stack Tecnológico
+- **Backend**: Node.js 20+ com NestJS
+- **Database**: MongoDB 6+ com Mongoose
+- **Cache**: Redis 7+
+- **Queue**: RabbitMQ 3.12+
+- **Storage**: MinIO para arquivos
+- **IA**: OpenAI API (GPT-4, Embeddings)
+- **Auth**: JWT com refresh tokens
+- **Logs**: Winston com rotação
+- **Tests**: Jest + Supertest
+- **Deploy**: Docker + Docker Compose
+
+## 📁 Estrutura do Projeto
+```
+src/
+├── config/             # Configurações
+├── core/              # Clean Architecture
+│   ├── domain/       # Entidades e regras
+│   ├── application/  # Use cases
+│   └── infrastructure/ # Implementações
+├── modules/          # Módulos funcionais
+│   ├── auth/        # Autenticação
+│   ├── users/       # Usuários
+│   ├── chatbots/    # Chatbots
+│   ├── knowledge/   # Bases conhecimento
+│   ├── dataset/     # Upload arquivos
+│   └── profile/     # Perfis usuário
+├── workers/         # Workers assíncronos
+├── shared/          # Código compartilhado
+└── tests/           # Testes
+```
+
+## 🔧 Configurações Ambiente
+- Variáveis ambiente para todas as integrações
+- Configuração Docker para desenvolvimento
+- Scripts npm para diferentes ambientes
+- Healthchecks para todos os serviços
+- Logs estruturados com níveis apropriados
+
+## 🔒 Considerações de Segurança para Fluxo sem Senha
+- **Códigos Temporários**: Expiração em 5 minutos
+- **Rate Limiting**: Máximo 3 tentativas por minuto por email
+- **Blacklist**: Bloqueio temporário após 5 tentativas falhas
+- **Validação de Email**: Verificação de formato e domínio
+- **Validação de WhatsApp**: Formato internacional obrigatório
+- **JWT Security**: Tokens com expiração curta (15 min) e refresh tokens
+- **Logs de Segurança**: Auditoria de tentativas de login e códigos
+- **IP Tracking**: Monitoramento de IPs suspeitos
+
+# Próximos Passos Imediatos
+
+1. **Setup Ambiente** (Dia 1-2)
+   - [ ] Inicializar repositório
+   - [ ] Configurar NestJS base
+   - [ ] Setup Docker Compose
+   - [ ] Configurar variáveis ambiente
+
+2. **Estrutura Base** (Dia 3-5)
+   - [ ] Implementar Clean Architecture
+   - [ ] Configurar banco de dados
+   - [ ] Setup sistema de logs
+   - [ ] Configurar testes
+
+3. **Primeiro Endpoint** (Dia 6-7)
+   - [ ] Health check endpoint
+   - [ ] Documentação Swagger
+   - [ ] Middleware básico
+   - [ ] Primeiro teste E2E
+
+4. **Sistema Autenticação sem Senha** (Semana 2)
+   - [ ] Value Objects para Email e WhatsApp
+   - [ ] Use cases: Register, Activate, Login, VerifyLogin
+   - [ ] Sistema de códigos temporários
+   - [ ] Email Workers para envio
+   - [ ] JWT middleware e proteção
+   - [ ] Rate limiting e segurança
+   - [ ] Testes unitários completos
+
+5. **Integração MinIO** (Semana 3)
+   - [ ] Upload arquivos
+   - [ ] Validações
+   - [ ] URLs temporárias
+   - [ ] Testes integração

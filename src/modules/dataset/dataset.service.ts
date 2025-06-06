@@ -173,6 +173,11 @@ export class DatasetService {
     return this.bucketFileRepository.findByUserId(userId);
   }
 
+  async listFilesByDataset(userId: string, datasetId: string) {
+    this.logger.debug(`[ListFilesByDataset] Listando arquivos do usuário: ${userId} para o dataset: ${datasetId}`);
+    return this.bucketFileRepository.findByKnowledgeBaseId(datasetId);
+  }
+
   async deleteFile(fileId: string, userId: string): Promise<void> {
     return this.deleteFileUseCase.execute(fileId, userId);
   }

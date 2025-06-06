@@ -42,97 +42,28 @@ cp .env.example .env
 ```
 Edite o arquivo `.env` com suas configurações.
 
-## ⚙️ Configuração
-
-O arquivo `.env` deve conter as seguintes variáveis:
-
-```env
-# Server Configuration
-PORT=3000
-NODE_ENV=production
-API_PREFIX=api/v1
-TZ=America/Sao_Paulo
-
-# MongoDB Configuration
-MONGODB_URI=mongodb://user:password@host:port/database?authSource=admin
-
-# RabbitMQ Configuration
-RABBITMQ_URL=amqp://user:password@host:port
-RABBITMQ_QUEUE=notifications
-
-# SMTP Configuration
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@example.com
-SMTP_PASSWORD=your-password
-SMTP_FROM_NAME=GWAN
-SMTP_FROM_EMAIL=noreply@gwan.com.br
-
-# JWT Configuration
-JWT_SECRET=your-secret-key
-JWT_EXPIRATION=1d
-
-# WhatsApp Configuration
-WHATSAPP_API_URL=https://graph.facebook.com/v17.0
-WHATSAPP_API_TOKEN=your-whatsapp-api-token
-WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
-WHATSAPP_BUSINESS_ACCOUNT_ID=your-business-account-id
-
-# CORS Configuration
-ALLOWED_ORIGINS=https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
-
-# MinIO Configuration
-MINIO_ENDPOINT=minio.gwan.com.br
-MINIO_PORT=443
-MINIO_USE_SSL=true
-MINIO_ACCESS_KEY=your-access-key
-MINIO_SECRET_KEY=your-secret-key
-MINIO_BUCKET=datasets
-```
-
-## 🚀 Executando o projeto
-
-### Desenvolvimento
-```bash
-npm run start:dev
-```
-
-### Produção
-```bash
-npm run build
-npm run start:prod
-```
-
-### Email Worker
-```bash
-npm run start:email-worker
-```
-
-### Testes
-```bash
-# Unit tests
-npm run test
-
-# e2e tests
-npm run test:e2e
-
-# Test coverage
-npm run test:cov
-```
-
 ## 📦 Estrutura do Projeto
 
 ```
 src/
 ├── config/             # Configurações da aplicação
-├── modules/           # Módulos da aplicação
-│   ├── auth/         # Autenticação
-│   ├── hello/        # Exemplo de módulo
-│   └── health/       # Health check
-├── workers/          # Workers da aplicação
-│   └── email/        # Worker de email
-└── main.ts           # Arquivo principal
+├── core/              # Camadas da Clean Architecture
+│   ├── domain/       # Regras de negócio e entidades
+│   ├── application/  # Casos de uso
+│   └── infrastructure/ # Implementações concretas
+├── modules/          # Módulos da aplicação
+│   ├── auth/        # Autenticação
+│   ├── chatbots/    # Gerenciamento de chatbots
+│   ├── dataset/     # Gerenciamento de datasets
+│   ├── health/      # Health check
+│   ├── knowledge/   # Bases de conhecimento
+│   ├── profile/     # Perfil de usuário
+│   ├── rabbitmq/    # Configuração RabbitMQ
+│   └── users/       # Gerenciamento de usuários
+├── shared/          # Código compartilhado
+├── tests/           # Testes da aplicação
+├── types/           # Definições de tipos
+└── workers/         # Workers da aplicação
 ```
 
 ## 🔍 Endpoints
@@ -202,25 +133,26 @@ src/
   ```
 
 ### Knowledge Base
-- `POST /user/knowledge` - Criar uma nova base de conhecimento
+
+#### Fluxo de Base de Conhecimento
+
+**1. Criar Base de Conhecimento**
+- `POST /user/knowledge-base` - Criar uma nova base de conhecimento
   ```json
   Request Body:
   {
-    "fileId": "507f1f77bcf86cd799439011",
-    "name": "Base de Conhecimento de Marketing",
-    "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
-    "filename": "marketing_strategies.pdf"
+    "name": "Base de Suporte Técnico",
+    "description": "Base contendo manuais e documentação técnica"
   }
 
   Response (201 Created):
   {
     "_id": "507f1f77bcf86cd799439011",
     "userId": "507f1f77bcf86cd799439012",
-    "fileId": "507f1f77bcf86cd799439013",
-    "name": "Base de Conhecimento de Marketing",
-    "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
-    "filename": "marketing_strategies.pdf",
-    "status": "processing",
+    "name": "Base de Suporte Técnico",
+    "description": "Base contendo manuais e documentação técnica",
+    "status": "created",
+    "fileCount": 0,
     "createdAt": "2024-03-21T10:00:00.000Z",
     "updatedAt": "2024-03-21T10:00:00.000Z"
   }
@@ -230,18 +162,44 @@ src/
   - 401 Unauthorized: Não autorizado
   ```
 
-- `GET /user/knowledge` - Listar bases de conhecimento
+**2. Upload de Arquivo**
+- `POST /user/files/upload` - Upload de arquivo para MinIO
+  ```
+  Content-Type: multipart/form-data
+  
+  Request Body:
+  - file: [PDF File] (máximo 5MB)
+  - knowledgeBaseId: "507f1f77bcf86cd799439011"
+
+  Response (201 Created):
+  {
+    "fileId": "507f1f77bcf86cd799439014",
+    "filename": "manual_usuario.pdf",
+    "originalName": "Manual do Usuário.pdf",
+    "size": 2048576,
+    "mimeType": "application/pdf",
+    "bucketPath": "user123/knowledge-base/kb456/20240321-manual_usuario.pdf",
+    "status": "uploaded",
+    "createdAt": "2024-03-21T10:05:00.000Z"
+  }
+
+  Errors:
+  - 400 Bad Request: Arquivo inválido ou muito grande
+  - 401 Unauthorized: Não autorizado
+  - 404 Not Found: Base de conhecimento não encontrada
+  ```
+
+**3. Listar Bases de Conhecimento**
+- `GET /user/knowledge-base` - Listar bases de conhecimento do usuário
   ```json
   Response (200 OK):
   [
     {
       "_id": "507f1f77bcf86cd799439011",
-      "userId": "507f1f77bcf86cd799439012",
-      "fileId": "507f1f77bcf86cd799439013",
-      "name": "Base de Conhecimento de Marketing",
-      "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
-      "filename": "marketing_strategies.pdf",
-      "status": "processing",
+      "name": "Base de Suporte Técnico",
+      "description": "Base contendo manuais e documentação técnica",
+      "status": "active",
+      "fileCount": 3,
       "createdAt": "2024-03-21T10:00:00.000Z",
       "updatedAt": "2024-03-21T10:00:00.000Z"
     }
@@ -251,17 +209,25 @@ src/
   - 401 Unauthorized: Não autorizado
   ```
 
-- `GET /user/knowledge/:id` - Obter base de conhecimento específica
+**4. Buscar Base por ID**
+- `GET /user/knowledge-base/:id` - Obter base de conhecimento específica
   ```json
   Response (200 OK):
   {
     "_id": "507f1f77bcf86cd799439011",
     "userId": "507f1f77bcf86cd799439012",
-    "fileId": "507f1f77bcf86cd799439013",
-    "name": "Base de Conhecimento de Marketing",
-    "description": "Base de conhecimento contendo informações sobre estratégias de marketing digital",
-    "filename": "marketing_strategies.pdf",
-    "status": "processing",
+    "name": "Base de Suporte Técnico",
+    "description": "Base contendo manuais e documentação técnica",
+    "status": "active",
+    "fileCount": 3,
+    "files": [
+      {
+        "fileId": "507f1f77bcf86cd799439014",
+        "filename": "manual_usuario.pdf",
+        "status": "processed",
+        "uploadedAt": "2024-03-21T10:05:00.000Z"
+      }
+    ],
     "createdAt": "2024-03-21T10:00:00.000Z",
     "updatedAt": "2024-03-21T10:00:00.000Z"
   }
@@ -271,7 +237,42 @@ src/
   - 404 Not Found: Base de conhecimento não encontrada
   ```
 
-- `DELETE /user/knowledge/:id` - Excluir base de conhecimento
+**5. Iniciar Processamento**
+- `POST /user/knowledge-base/:id/start-process` - Iniciar processamento de arquivo
+  ```json
+  Request Body:
+  {
+    "fileId": "507f1f77bcf86cd799439014"
+  }
+
+  Response (202 Accepted):
+  {
+    "message": "Processamento iniciado",
+    "queueId": "process_507f1f77bcf86cd799439015",
+    "estimatedTime": "2-5 minutos"
+  }
+
+  Errors:
+  - 400 Bad Request: Arquivo não encontrado ou já processado
+  - 401 Unauthorized: Não autorizado
+  - 404 Not Found: Base ou arquivo não encontrado
+  ```
+
+**6. Exclusão de Arquivo**
+- `DELETE /user/files/:fileId` - Remover arquivo da base de conhecimento
+  ```json
+  Response (200 OK):
+  {
+    "message": "Arquivo removido com sucesso"
+  }
+
+  Errors:
+  - 401 Unauthorized: Não autorizado
+  - 404 Not Found: Arquivo não encontrado
+  ```
+
+**7. Exclusão de Base**
+- `DELETE /user/knowledge-base/:id` - Excluir base de conhecimento
   ```json
   Response (200 OK):
   {
@@ -283,157 +284,295 @@ src/
   - 404 Not Found: Base de conhecimento não encontrada
   ```
 
-## 📁 Estrutura de Armazenamento
+### Chatbots
+- `POST /user/chatbots` - Criar um novo chatbot
+  ```json
+  Request Body:
+  {
+    "name": "Chatbot de Suporte",
+    "description": "Chatbot para atendimento ao cliente",
+    "knowledgeBaseId": "507f1f77bcf86cd799439011",
+    "settings": {
+      "temperature": 0.7,
+      "maxTokens": 1000
+    }
+  }
 
-### MinIO (Bucket Storage)
-Os arquivos são armazenados no MinIO em uma estrutura organizada por usuário:
+  Response (201 Created):
+  {
+    "_id": "507f1f77bcf86cd799439011",
+    "userId": "507f1f77bcf86cd799439012",
+    "name": "Chatbot de Suporte",
+    "description": "Chatbot para atendimento ao cliente",
+    "knowledgeBaseId": "507f1f77bcf86cd799439013",
+    "settings": {
+      "temperature": 0.7,
+      "maxTokens": 1000
+    },
+    "status": "active",
+    "createdAt": "2024-03-21T10:00:00.000Z",
+    "updatedAt": "2024-03-21T10:00:00.000Z"
+  }
+  ```
 
+- `GET /user/chatbots` - Listar chatbots do usuário
+- `GET /user/chatbots/:id` - Obter detalhes de um chatbot
+- `PUT /user/chatbots/:id` - Atualizar configurações do chatbot
+- `DELETE /user/chatbots/:id` - Remover chatbot
+
+### Profile
+- `GET /user/profile` - Obter perfil do usuário
+  ```json
+  Response (200 OK):
+  {
+    "_id": "507f1f77bcf86cd799439011",
+    "email": "user@example.com",
+    "name": "Nome do Usuário",
+    "company": "Empresa",
+    "role": "admin",
+    "preferences": {
+      "notifications": {
+        "email": true,
+        "whatsapp": false
+      },
+      "language": "pt-BR"
+    },
+    "createdAt": "2024-03-21T10:00:00.000Z",
+    "updatedAt": "2024-03-21T10:00:00.000Z"
+  }
+  ```
+
+- `PUT /user/profile` - Atualizar perfil do usuário
+- `PUT /user/profile/preferences` - Atualizar preferências do usuário
+
+### Users (Admin)
+- `GET /admin/users` - Listar todos os usuários (apenas admin)
+- `GET /admin/users/:id` - Obter detalhes de um usuário
+- `PUT /admin/users/:id` - Atualizar dados de um usuário
+- `DELETE /admin/users/:id` - Desativar usuário
+
+## 🏗️ Arquitetura
+
+O projeto segue os princípios da Clean Architecture, dividindo a aplicação em camadas bem definidas:
+
+### Core Layer
 ```
-datasets/
-  ├── {userId}/
-  │   ├── {timestamp}-{filename}.pdf
-  │   └── {timestamp}-{filename}.pdf
-  └── {outroUserId}/
-      └── {timestamp}-{filename}.pdf
+src/core/
+├── domain/           # Camada de domínio
+│   ├── entities/    # Entidades de negócio
+│   ├── errors/      # Erros específicos do domínio
+│   ├── services/    # Serviços de domínio
+│   └── value-objects/ # Objetos de valor
+├── application/      # Camada de aplicação
+│   └── use-cases/   # Casos de uso da aplicação
+└── infrastructure/   # Camada de infraestrutura
+    ├── repositories/ # Implementações dos repositórios
+    └── services/    # Serviços externos
 ```
 
-Exemplo:
+### Módulos
+Cada módulo segue a estrutura da Clean Architecture:
 ```
-datasets/
-  ├── 681156721df613b75b7a833f/
-  │   ├── 1714567890123-documento1.pdf
-  │   └── 1714567890124-documento2.pdf
-  └── 681156721df613b75b7a833g/
-      └── 1714567890125-documento3.pdf
-```
-
-### MongoDB (Metadata Storage)
-Os metadados dos arquivos são armazenados na collection `bucketfiles` com a seguinte estrutura:
-
-```javascript
-{
-  _id: ObjectId,
-  userId: String,          // ID do usuário que fez o upload
-  originalName: String,    // Nome original do arquivo
-  fileName: String,        // Nome do arquivo no bucket (inclui userId/timestamp)
-  size: Number,           // Tamanho em bytes
-  mimeType: String,       // Tipo do arquivo (ex: application/pdf)
-  url: String,            // URL temporária para acesso
-  bucketName: String,     // Nome do bucket (datasets)
-  createdAt: Date,        // Data de criação
-  updatedAt: Date         // Data da última atualização
-}
+modules/{module-name}/
+├── domain/          # Entidades e regras específicas do módulo
+├── application/     # Casos de uso do módulo
+├── infrastructure/  # Implementações específicas
+└── presentation/    # Controllers e DTOs
 ```
 
-### Queries Úteis MongoDB
+## ⚙️ Configuração
 
-1. Listar todos os arquivos de um usuário:
-```javascript
-db.bucketfiles.find({ userId: "681156721df613b75b7a833f" })
-```
+O arquivo `.env` deve conter as seguintes variáveis:
 
-2. Listar arquivos ordenados por data:
-```javascript
-db.bucketfiles.find().sort({ createdAt: -1 })
-```
-
-3. Total de arquivos por usuário:
-```javascript
-db.bucketfiles.aggregate([
-  { $group: { _id: "$userId", total: { $sum: 1 } } }
-])
-```
-
-4. Tamanho total dos arquivos por usuário:
-```javascript
-db.bucketfiles.aggregate([
-  { $group: { _id: "$userId", totalSize: { $sum: "$size" } } }
-])
-```
-
-## 🗄️ Serviço de Arquivos (MinIO)
-
-O serviço de arquivos utiliza o MinIO como storage para armazenamento de datasets em PDF. 
-
-### Características
-- Armazenamento de arquivos PDF
-- Limite de 20MB por arquivo
-- URLs temporárias válidas por 24 horas
-- Bucket padrão: `datasets`
-- SSL/TLS habilitado por padrão em produção
-
-### Configuração MinIO
-O serviço requer as seguintes variáveis de ambiente:
 ```env
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+API_PREFIX=api/v1
+TZ=America/Sao_Paulo
+
+# MongoDB Configuration
+MONGODB_URI=mongodb://user:password@host:port/database?authSource=admin
+
+# RabbitMQ Configuration
+RABBITMQ_URL=amqp://user:password@host:port
+RABBITMQ_QUEUE=notifications
+
+# SMTP Configuration
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@example.com
+SMTP_PASSWORD=your-password
+SMTP_FROM_NAME=GWAN
+SMTP_FROM_EMAIL=noreply@gwan.com.br
+
+# JWT Configuration
+JWT_SECRET=your-secret-key
+JWT_EXPIRATION=1d
+
+# WhatsApp Configuration
+WHATSAPP_API_URL=https://graph.facebook.com/v17.0
+WHATSAPP_API_TOKEN=your-whatsapp-api-token
+WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
+WHATSAPP_BUSINESS_ACCOUNT_ID=your-business-account-id
+
+# CORS Configuration
+ALLOWED_ORIGINS=https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
+
+# MinIO Configuration
 MINIO_ENDPOINT=minio.gwan.com.br
 MINIO_PORT=443
 MINIO_USE_SSL=true
 MINIO_ACCESS_KEY=your-access-key
 MINIO_SECRET_KEY=your-secret-key
 MINIO_BUCKET=datasets
+
+# Chatbot Configuration
+OPENAI_API_KEY=your-openai-api-key
+CHATBOT_MAX_TOKENS=1000
+CHATBOT_DEFAULT_TEMPERATURE=0.7
+
+# User Profile Configuration
+DEFAULT_USER_ROLE=user
+ALLOWED_USER_ROLES=user,admin,manager
+
+# RabbitMQ Workers
+RABBITMQ_WORKER_PREFETCH=1
+RABBITMQ_WORKER_QUEUE=chatbot-processing
+RABBITMQ_WORKER_RETRY_DELAY=5000
+RABBITMQ_WORKER_MAX_RETRIES=3
 ```
 
-### Pré-requisitos
-- Bucket `datasets` deve ser criado manualmente no console do MinIO
-- Configurar as políticas de acesso apropriadas no bucket
-- Garantir que o MinIO está acessível via HTTPS em produção
-- Configurar certificados SSL válidos para o endpoint MinIO
+## 🚀 Workers
 
-### Uso
-1. **Listar Arquivos**
-   - Endpoint: `GET /user/dataset/list`
-   - Retorna lista de arquivos no bucket com metadados
+O projeto utiliza workers para processamento assíncrono:
 
-2. **Upload de Arquivo**
-   - Endpoint: `POST /user/dataset/upload`
-   - Aceita apenas PDFs até 5MB
-   - Retorna URL temporária para acesso ao arquivo
+### Email Worker
+```bash
+npm run start:email-worker
+```
 
-### Segurança
-- Arquivos acessíveis apenas via URLs temporárias
-- Validação de tipo de arquivo
-- Limite de tamanho para prevenir abusos
-- Logs detalhados para auditoria
+### Chatbot Processing Worker
+```bash
+npm run start:chatbot-worker
+```
 
-## 📝 Logs
+### Knowledge Base Processing Worker
+```bash
+npm run start:knowledge-worker
+```
 
+## 🧪 Testes
+
+### Estrutura de Testes
+```
+src/tests/
+├── unit/           # Testes unitários
+├── integration/    # Testes de integração
+└── e2e/           # Testes end-to-end
+```
+
+### Comandos de Teste
+```bash
+# Testes unitários
+npm run test
+
+# Testes de integração
+npm run test:integration
+
+# Testes e2e
+npm run test:e2e
+
+# Cobertura de testes
+npm run test:cov
+
+# Testes específicos de um módulo
+npm run test:module -- --module=auth
+npm run test:module -- --module=chatbots
+```
+
+## 📊 Monitoramento
+
+### Logs
 Os logs são gerados em diferentes níveis:
 - `[Bootstrap]` - Logs de inicialização
 - `[EmailWorker]` - Logs do worker de email
+- `[ChatbotWorker]` - Logs do worker de chatbots
+- `[KnowledgeWorker]` - Logs do worker de bases de conhecimento
 - `[MongoDB]` - Logs de conexão com o MongoDB
 - `[RabbitMQ]` - Logs de conexão com o RabbitMQ
 
-## 🔐 Segurança
-
-- Variáveis de ambiente sensíveis não são versionadas
-- JWT para autenticação
-- CORS configurado
-- Rate limiting implementado
-- Validação de dados com class-validator
-- Sanitização de inputs
+### Métricas
+- Tempo de resposta por endpoint
+- Taxa de erros por módulo
+- Uso de recursos dos workers
+- Status das filas RabbitMQ
+- Conexões ativas com MongoDB
 
 ## 🚀 Deploy
 
-O projeto pode ser deployado usando Docker em produção:
+### Docker Compose
+```yaml
+version: '3.8'
 
-```bash
-# Build da imagem
-docker build -t gwan-bff-app:latest .
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env.production
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - minio
 
-# Execução do container
-docker run -d \
-  --name gwan-bff-app \
-  --restart unless-stopped \
-  --network gwan \
-  -p 3000:3000 \
-  --env-file .env.production \
-  gwan-bff-app:latest
-```
+  email-worker:
+    build: .
+    command: npm run start:email-worker
+    env_file: .env.production
+    depends_on:
+      - rabbitmq
 
-Para ambiente de produção, use o docker-compose:
+  chatbot-worker:
+    build: .
+    command: npm run start:chatbot-worker
+    env_file: .env.production
+    depends_on:
+      - rabbitmq
 
-```bash
-docker-compose up -d
+  knowledge-worker:
+    build: .
+    command: npm run start:knowledge-worker
+    env_file: .env.production
+    depends_on:
+      - rabbitmq
+
+  mongodb:
+    image: mongo:6
+    volumes:
+      - mongodb_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+
+volumes:
+  mongodb_data:
+  minio_data:
 ```
 
 ### Configurações de Produção
@@ -450,6 +589,8 @@ docker-compose up -d
    - Implemente health checks
    - Monitore uso de recursos
    - Configure alertas
+   - Monitore status dos workers
+   - Configure métricas de performance
 
 3. **Backup**
    - Configure backup regular do MongoDB
@@ -460,26 +601,8 @@ docker-compose up -d
    - Configure limites de recursos no Docker
    - Implemente rate limiting
    - Configure conexões pool para serviços externos
-
-### Variáveis de Ambiente Críticas
-
-Certifique-se de que as seguintes variáveis estejam configuradas corretamente em produção:
-
-```env
-# Segurança
-NODE_ENV=production
-JWT_SECRET=<chave-secreta-forte>
-MINIO_USE_SSL=true
-
-# Performance
-RABBITMQ_PREFETCH=1
-SMTP_POOL_MAX=5
-MONGODB_POOL_SIZE=10
-
-# Monitoramento
-LOG_LEVEL=info
-ENABLE_HEALTH_CHECKS=true
-```
+   - Configure auto-scaling para workers
+   - Implemente circuit breakers
 
 ## 🔧 Troubleshooting
 
@@ -555,30 +678,48 @@ datasets/
 #### BucketFile (MongoDB)
 ```typescript
 {
-    userId: string;          // ID do usuário proprietário
+    _id: ObjectId;           // ID único do arquivo
+    userId: ObjectId;        // ID do usuário proprietário
+    knowledgeBaseId: ObjectId; // ID da base de conhecimento
     originalName: string;    // Nome original do arquivo
-    fileName: string;        // Nome do arquivo no MinIO
+    filename: string;        // Nome do arquivo no MinIO (com timestamp)
     size: number;           // Tamanho em bytes
     mimeType: string;       // Tipo MIME do arquivo
-    url: string;            // URL temporária de acesso
-    bucketName: string;     // Nome do bucket no MinIO
+    bucketPath: string;     // Caminho completo no MinIO
+    status: string;         // Status: 'uploaded' | 'processing' | 'processed' | 'failed'
+    uploadedAt: Date;       // Data do upload
+    processedAt?: Date;     // Data do processamento (opcional)
 }
 ```
 
 #### KnowledgeBase (MongoDB)
 ```typescript
 {
-    userId: string;          // ID do usuário proprietário
+    _id: ObjectId;          // ID único da base
+    userId: ObjectId;       // ID do usuário proprietário
     name: string;           // Nome da base de conhecimento
-    description: string;     // Descrição da base
-    fileId: string;         // ID do arquivo associado
-    status: string;         // Status: 'processing' | 'completed' | 'failed'
-    error?: string;         // Mensagem de erro (opcional)
-    metadata?: {            // Metadados do processamento
-        totalChunks?: number;
-        processedChunks?: number;
-        totalTokens?: number;
-    }
+    description: string;    // Descrição da base
+    status: string;         // Status: 'created' | 'active' | 'processing' | 'error'
+    fileCount: number;      // Número de arquivos vinculados
+    createdAt: Date;        // Data de criação
+    updatedAt: Date;        // Data da última atualização
+}
+```
+
+#### Document (MongoDB - chunks processados)
+```typescript
+{
+    _id: ObjectId;          // ID único do documento processado
+    fileId: ObjectId;       // ID do arquivo original
+    chunks: string[];       // Array de chunks de texto
+    embeddings: number[][]; // Array de embeddings dos chunks
+    metadata: {             // Metadados do processamento
+        totalChunks: number;
+        totalTokens: number;
+        chunkSize: number;
+        embeddingModel: string;
+    };
+    processedAt: Date;      // Data do processamento
 }
 ```
 
@@ -682,8 +823,6 @@ Todos os endpoints de usuário (exceto autenticação) requerem um token JWT vá
 ```
 Authorization: Bearer <token>
 ```
-
-O token é obtido após o login bem-sucedido através do endpoint `/auth/login`.
 
 ## 📝 Status da Base de Conhecimento
 
@@ -889,134 +1028,24 @@ Authorization: Bearer <token>
 - `DELETE /user/dataset/:id` - Remove arquivo
 
 #### Knowledge Base
-- `POST /user/knowledge` - Cria base de conhecimento
-- `GET /user/knowledge` - Lista bases de conhecimento
-- `GET /user/knowledge/:id` - Obtém base específica
-- `DELETE /user/knowledge/:id` - Remove base de conhecimento
+- `POST /user/knowledge-base` - Cria base de conhecimento (nome + descrição)
+- `GET /user/knowledge-base` - Lista bases de conhecimento do usuário
+- `GET /user/knowledge-base/:id` - Obtém base específica com arquivos
+- `PUT /user/knowledge-base/:id` - Atualiza informações da base
+- `DELETE /user/knowledge-base/:id` - Remove base e arquivos
+- `POST /user/knowledge-base/:id/start-process` - Inicia processamento assíncrono
 
-## 🧪 Testes
+#### Files
+- `POST /user/files/upload` - Upload de arquivo para MinIO
+- `GET /user/files` - Lista arquivos do usuário
+- `DELETE /user/files/:fileId` - Remove arquivo do MinIO + MongoDB
 
-O projeto utiliza diferentes tipos de testes para garantir a qualidade do código:
+#### Chatbots
+- `POST /user/chatbots` - Cria novo chatbot
+- `GET /user/chatbots` - Lista chatbots do usuário
+- `GET /user/chatbots/:id` - Obter detalhes de um chatbot
+- `PUT /user/chatbots/:id` - Atualizar configurações do chatbot
+- `DELETE /user/chatbots/:id` - Remover chatbot
 
-### Testes Unitários
-```bash
-npm run test
-```
-
-### Testes E2E
-```bash
-npm run test:e2e
-```
-
-### Cobertura de Testes
-```bash
-npm run test:cov
-```
-
-### Testes de Integração
-```bash
-npm run test:integration
-```
-
-## 📊 Monitoramento
-
-O sistema inclui monitoramento através de:
-
-1. **Logs Estruturados**
-   - Níveis: error, warn, info, debug
-   - Formato JSON para fácil parsing
-   - Rotação de logs
-
-2. **Métricas**
-   - Tempo de resposta
-   - Taxa de erros
-   - Uso de recursos
-
-3. **Health Checks**
-   - Status da aplicação
-   - Conexões com serviços
-   - Uso de memória
-
-## 🔄 CI/CD
-
-O projeto utiliza GitHub Actions para CI/CD:
-
-1. **Build**
-   - Instalação de dependências
-   - Compilação TypeScript
-   - Testes unitários
-
-2. **Test**
-   - Testes E2E
-   - Testes de integração
-   - Análise de cobertura
-
-3. **Deploy**
-   - Build da imagem Docker
-   - Push para registry
-   - Deploy em ambiente
-
-## 📈 Roadmap
-
-### Fase 1 - MVP
-- [x] Autenticação básica
-- [x] Upload de arquivos
-- [x] Processamento de PDFs
-- [x] API REST
-
-### Fase 2 - Melhorias
-- [ ] Cache distribuído
-- [ ] Sistema de backup
-- [ ] Compressão de arquivos
-- [ ] Versionamento de bases
-
-### Fase 3 - Escalabilidade
-- [ ] Load balancing
-- [ ] Sharding de dados
-- [ ] CDN para arquivos
-- [ ] Monitoramento avançado
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-### Guia de Contribuição
-
-1. **Código**
-   - Siga os padrões de código
-   - Adicione testes
-   - Documente mudanças
-
-2. **Commits**
-   - Use mensagens claras
-   - Referencie issues
-   - Siga o padrão conventional commits
-
-3. **Pull Requests**
-   - Descreva as mudanças
-   - Inclua testes
-   - Atualize documentação
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## 👥 Autores
-
-- **GWAN Team** - *Desenvolvimento* - [gwan](https://github.com/gwan)
-
-## 🙏 Agradecimentos
-
-- NestJS Team
-- MongoDB Team
-- RabbitMQ Team
-- MinIO Team
-- Todos os contribuidores
-
----
-
-Made with ❤️ by GWAN Team 
+#### Profile
+- `GET /user/profile`

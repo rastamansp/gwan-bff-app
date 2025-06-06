@@ -31,25 +31,64 @@ export class MinioStorageService implements IStorageService {
     }
 
     async uploadFile(file: Multer['File'], path: string): Promise<string> {
+        this.logger.debug('[MinioStorageService] Iniciando upload de arquivo:', {
+            originalname: file?.originalname,
+            mimetype: file?.mimetype,
+            size: file?.size,
+            buffer: file?.buffer ? 'presente' : 'ausente',
+            fieldname: file?.fieldname,
+            encoding: file?.encoding
+        });
+
         const exists = await this.minioClient.bucketExists(this.bucketName);
         if (!exists) {
             throw new Error(`Bucket ${this.bucketName} não encontrado`);
         }
 
+        if (!file) {
+            this.logger.error('[MinioStorageService] Arquivo não fornecido');
+            throw new Error('Arquivo não fornecido');
+        }
+
         const fileBuffer = file.buffer;
         if (!fileBuffer) {
+            this.logger.error('[MinioStorageService] Buffer do arquivo não encontrado', {
+                file: {
+                    originalname: file.originalname,
+                    mimetype: file.mimetype,
+                    size: file.size,
+                    fieldname: file.fieldname,
+                    encoding: file.encoding
+                }
+            });
             throw new Error('Arquivo inválido ou corrompido');
         }
 
-        await this.minioClient.putObject(
-            this.bucketName,
-            path,
-            fileBuffer,
-            file.size,
-            { 'Content-Type': file.mimetype },
-        );
+        try {
+            await this.minioClient.putObject(
+                this.bucketName,
+                path,
+                fileBuffer,
+                file.size,
+                { 'Content-Type': file.mimetype },
+            );
 
-        return path;
+            this.logger.debug('[MinioStorageService] Upload concluído com sucesso:', {
+                path,
+                size: file.size,
+                mimetype: file.mimetype
+            });
+
+            return path;
+        } catch (error) {
+            this.logger.error('[MinioStorageService] Erro ao fazer upload para MinIO:', {
+                error: error.message,
+                code: error.code,
+                path,
+                size: file.size
+            });
+            throw error;
+        }
     }
 
     async listFiles(prefix: string): Promise<any[]> {
