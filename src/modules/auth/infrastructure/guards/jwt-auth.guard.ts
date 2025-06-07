@@ -23,7 +23,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     const request = context.switchToHttp().getRequest();
     const path = request.path;
 
-    this.logger.debug(`[Auth] Headers recebidos:`, request.headers);
+    //this.logger.debug(`[Auth] Headers recebidos:`, request.headers);
 
     // Verifica se a rota é pública
     if (this.publicRoutes.includes(path)) {
@@ -37,7 +37,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
 
     // Verifica tanto 'authorization' quanto 'Authorization'
     const authHeader = request.headers.authorization || request.headers.Authorization;
-    this.logger.debug(`[Auth] Header de autorização: ${authHeader}`);
+    //this.logger.debug(`[Auth] Header de autorização: ${authHeader}`);
 
     if (!authHeader) {
       this.logger.warn("[Auth] Header de autorização não encontrado");

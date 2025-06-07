@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
 import { IKnowledgeBaseRepository } from '../../../domain/interfaces/knowledge-base.repository.interface';
-import { RabbitMQService } from '../../../infrastructure/services/rabbitmq.service';
+import { RabbitMQService } from '../../../../rabbitmq/rabbitmq.service';
 import { KNOWLEDGE_BASE_REPOSITORY } from '../../../knowledge.module';
 import { BUCKET_FILE_REPOSITORY } from '../../../../dataset/domain/constants/injection-tokens';
 import { IBucketFileRepository } from '../../../../dataset/domain/repositories/bucket-file.repository';
@@ -60,12 +60,20 @@ export class StartProcessUseCase {
             status: 'processing' as FileStatus,
         });
 
-        // Envia mensagem para processamento
-        await this.rabbitMQService.sendMessage({
+        const message = {
             knowledgeBaseId,
             userId,
             bucketFileId,
-        });
+            filename: bucketFile.fileName,
+            action: 'process_document',
+            priority: 'normal',
+            timestamp: new Date().toISOString()
+        }
+
+
+        this.logger.debug(`[StartProcessUseCase] Enviando mensagem para processamento: ${JSON.stringify(message)}`);
+        // Envia mensagem para processamento usando o exchange global
+        await this.rabbitMQService.publish('knowledge.process', message);
 
         this.logger.log(`Process started for knowledge base ${knowledgeBaseId} and file ${bucketFileId}`);
     }

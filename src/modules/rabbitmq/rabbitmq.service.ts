@@ -30,12 +30,25 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.channelWrapper = this.connection.createChannel({
-      setup: (channel: Channel) => {
-        return Promise.all([
-          channel.assertExchange("knowledge.exchange", "topic", {
-            durable: true,
-          }),
-        ]);
+      setup: async (channel: Channel) => {
+        // Configura o exchange
+        await channel.assertExchange("knowledge.exchange", "topic", {
+          durable: true,
+        });
+
+        // Configura a fila knowledge_base_processing
+        await channel.assertQueue("knowledge_base_processing", {
+          durable: true,
+        });
+
+        // Vincula a fila ao exchange com o routing key knowledge.process
+        await channel.bindQueue(
+          "knowledge_base_processing",
+          "knowledge.exchange",
+          "knowledge.process"
+        );
+
+        this.logger.log("Exchange knowledge.exchange e fila knowledge_base_processing configurados com sucesso");
       },
     });
   }

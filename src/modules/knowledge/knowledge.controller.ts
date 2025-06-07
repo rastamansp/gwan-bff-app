@@ -17,9 +17,12 @@ import {
     ApiResponse,
     ApiBearerAuth,
     ApiParam,
+    ApiBody,
 } from "@nestjs/swagger";
 import { CreateKnowledgeBaseDto } from "./dto/create-knowledge-base.dto";
 import { Request as ExpressRequest } from "express";
+import { EmbeddingService } from './domain/services/embedding.service';
+import { OpenAIEmbeddingService } from './domain/services/openai-embedding.service';
 
 interface AuthenticatedRequest extends ExpressRequest {
     user: {
@@ -33,7 +36,11 @@ interface AuthenticatedRequest extends ExpressRequest {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class KnowledgeController {
-    constructor(private readonly knowledgeService: KnowledgeService) { }
+    constructor(
+        private readonly knowledgeService: KnowledgeService,
+        private readonly embeddingService: EmbeddingService,
+        private readonly openAIEmbeddingService: OpenAIEmbeddingService,
+    ) { }
 
     @Post()
     @ApiOperation({
@@ -209,5 +216,83 @@ export class KnowledgeController {
     ) {
         const userId = req.user.id;
         return this.knowledgeService.startProcess(knowledgeBaseId, userId, bucketFileId);
+    }
+
+    @Post(":knowledgeBaseId/similar")
+    @ApiOperation({
+        summary: "Buscar chunks similares",
+        description: "Busca chunks de texto similares usando embeddings da OpenAI",
+    })
+    @ApiParam({ name: "knowledgeBaseId", description: "ID da base de conhecimento" })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                text: {
+                    type: 'string',
+                    description: 'Texto para busca de similaridade',
+                },
+                limit: {
+                    type: 'number',
+                    description: 'Número máximo de resultados (padrão: 5)',
+                    default: 5,
+                },
+            },
+            required: ['text'],
+        },
+    })
+    @ApiResponse({
+        status: 200,
+        description: "Chunks similares encontrados",
+        schema: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    id: { type: 'string' },
+                    content: { type: 'string' },
+                    similarity: { type: 'number' },
+                    meta: {
+                        type: 'object',
+                        properties: {
+                            tokenCount: { type: 'number' },
+                            pageNumber: { type: 'number' },
+                            section: { type: 'string' },
+                        },
+                    },
+                },
+            },
+        },
+    })
+    @ApiResponse({ status: 401, description: "Não autorizado" })
+    @ApiResponse({ status: 404, description: "Base de conhecimento não encontrada" })
+    async findSimilarChunksByText(
+        @Param("knowledgeBaseId") knowledgeBaseId: string,
+        @Body() body: { text: string; limit?: number },
+        @Req() req: AuthenticatedRequest,
+    ) {
+        const userId = req.user.id;
+        const { text, limit = 5 } = body;
+
+        // Verifica se a base existe e pertence ao usuário
+        await this.knowledgeService.getKnowledgeBaseById(knowledgeBaseId, userId);
+
+        // Gera o embedding do texto
+        const embedding = await this.openAIEmbeddingService.generateEmbedding(text);
+
+        // Busca os chunks similares
+        const chunks = await this.embeddingService.findBySimilarity(
+            knowledgeBaseId,
+            userId,
+            embedding,
+            limit
+        );
+
+        return chunks.map(chunk => ({
+            id: chunk.id,
+            content: chunk.content,
+            similarity: chunk.similarity,
+            meta: chunk.meta,
+        }));
     }
 }

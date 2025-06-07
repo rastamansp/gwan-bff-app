@@ -10,7 +10,7 @@ import { KnowledgeBase } from "./schemas/knowledge-base.schema";
 import { CreateKnowledgeBaseDto } from "./dto/create-knowledge-base.dto";
 import { UpdateKnowledgeBaseDto } from "./dto/update-knowledge-base.dto";
 import { DatasetService } from "../dataset/dataset.service";
-import { RabbitMQService } from "./infrastructure/services/rabbitmq.service";
+import { RabbitMQService } from "../rabbitmq/rabbitmq.service";
 import { StartProcessUseCase } from "./application/use-cases/start-process/start-process.usecase";
 import { KnowledgeBaseStatus } from "./domain/enums/knowledge-base-status.enum";
 
@@ -37,18 +37,21 @@ export class KnowledgeService {
             description,
             status: KnowledgeBaseStatus.NEW,
         };
-        console.log("createDto", createDto);
+        this.logger.log("Criando base de conhecimento:", createDto);
         const createdKnowledgeBase = new this.knowledgeBaseModel(createDto);
         const savedKnowledgeBase = await createdKnowledgeBase.save();
 
         const message = {
             knowledgeBaseId: savedKnowledgeBase._id,
             userId: savedKnowledgeBase.userId,
+            action: 'create_knowledge_base',
+            priority: 'normal',
+            timestamp: new Date().toISOString()
         };
-        console.log("message", message);
+        this.logger.log("Enviando mensagem para processamento:", message);
 
-        // Envia para a fila de processamento
-        await this.rabbitMQService.sendMessage(message);
+        // Envia para a fila de processamento usando o exchange global
+        await this.rabbitMQService.publish('knowledge.process', message);
 
         return savedKnowledgeBase;
     }
