@@ -15,16 +15,32 @@ import { ProfileModule } from './modules/profile/profile.module';
 import { CrawlModule } from './modules/crawl/crawl.module';
 import configuration from './config/configuration';
 import { ChatbotsModule } from './modules/chatbots/chatbots.module';
+import * as fs from 'fs';
+import * as path from 'path';
+
+function getEnvFilePath(): string {
+  const nodeEnv = process.env.NODE_ENV || 'development';
+
+  const envFiles = [
+    `.env.${nodeEnv}`,
+    '.env'
+  ];
+
+  for (const envFile of envFiles) {
+    if (fs.existsSync(path.resolve(process.cwd(), envFile))) {
+      return envFile;
+    }
+  }
+
+  // Se nenhum arquivo for encontrado, retorna null para usar apenas variáveis de ambiente
+  return null;
+}
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'production'
-        ? '.env.production'
-        : process.env.NODE_ENV === 'test'
-          ? '.env.test'
-          : '.env',
+      envFilePath: getEnvFilePath(),
       expandVariables: true,
       cache: true,
       load: [configuration],
