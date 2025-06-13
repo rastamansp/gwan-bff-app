@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
 import { MongooseModule } from "@nestjs/mongoose";
 import { DatasetController } from "./presentation/controllers/dataset.controller";
@@ -13,6 +13,7 @@ import {
 import { BucketFileRepositoryImpl } from "./infrastructure/repositories/bucket-file.repository.impl";
 import { STORAGE_SERVICE, BUCKET_FILE_REPOSITORY } from "./domain/constants/injection-tokens";
 import { DatasetService } from "./dataset.service";
+import { KnowledgeModule } from "../knowledge/knowledge.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { DatasetService } from "./dataset.service";
     MongooseModule.forFeature([
       { name: BucketFile.name, schema: BucketFileSchema },
     ]),
+    forwardRef(() => KnowledgeModule),
   ],
   controllers: [DatasetController],
   providers: [

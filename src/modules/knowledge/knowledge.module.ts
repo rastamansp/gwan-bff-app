@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { KnowledgeController } from "./knowledge.controller";
 import { KnowledgeService } from "./knowledge.service";
@@ -35,7 +35,7 @@ export const DOCUMENT_EMBEDDING_REPOSITORY = 'DOCUMENT_EMBEDDING_REPOSITORY';
       { name: Knowledge.name, schema: KnowledgeSchema },
     ]),
     AuthModule,
-    DatasetModule,
+    forwardRef(() => DatasetModule),
     RabbitMQModule
   ],
   controllers: [KnowledgeController],
@@ -76,13 +76,26 @@ export const DOCUMENT_EMBEDDING_REPOSITORY = 'DOCUMENT_EMBEDDING_REPOSITORY';
       inject: [KNOWLEDGE_BASE_REPOSITORY, BUCKET_FILE_REPOSITORY, RabbitMQService],
     },
     {
+      provide: 'IDocumentEmbeddingRepository',
+      useClass: PostgresDocumentEmbeddingRepository,
+    },
+    {
       provide: EmbeddingService,
-      useFactory: (repository: IDocumentEmbeddingRepository) => {
-        return new EmbeddingService(repository);
+      useFactory: (repository: IDocumentEmbeddingRepository, openAIEmbeddingService: OpenAIEmbeddingService) => {
+        return new EmbeddingService(repository, openAIEmbeddingService);
       },
-      inject: [DOCUMENT_EMBEDDING_REPOSITORY],
+      inject: [DOCUMENT_EMBEDDING_REPOSITORY, OpenAIEmbeddingService],
     },
   ],
-  exports: [KnowledgeService, DomainKnowledgeService, EmbeddingService],
+  exports: [
+    KnowledgeService,
+    DomainKnowledgeService,
+    EmbeddingService,
+    {
+      provide: DOCUMENT_EMBEDDING_REPOSITORY,
+      useClass: PostgresDocumentEmbeddingRepository,
+    },
+    OpenAIEmbeddingService,
+  ],
 })
 export class KnowledgeModule { }

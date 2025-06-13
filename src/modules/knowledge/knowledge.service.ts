@@ -13,6 +13,7 @@ import { DatasetService } from "../dataset/dataset.service";
 import { RabbitMQService } from "../rabbitmq/rabbitmq.service";
 import { StartProcessUseCase } from "./application/use-cases/start-process/start-process.usecase";
 import { KnowledgeBaseStatus } from "./domain/enums/knowledge-base-status.enum";
+import { EmbeddingService } from "./domain/services/embedding.service";
 
 @Injectable()
 export class KnowledgeService {
@@ -24,6 +25,7 @@ export class KnowledgeService {
         private readonly datasetService: DatasetService,
         private readonly rabbitMQService: RabbitMQService,
         private readonly startProcessUseCase: StartProcessUseCase,
+        private readonly embeddingService: EmbeddingService,
     ) { }
 
     async createKnowledgeBase(
@@ -87,12 +89,22 @@ export class KnowledgeService {
     }
 
     async deleteKnowledgeBase(id: string, userId: string): Promise<void> {
+        // Primeiro verifica se a base existe e pertence ao usuário
+        const knowledgeBase = await this.getKnowledgeBaseById(id, userId);
+
+        // Deleta todos os chunks associados à base
+        await this.embeddingService.deleteByKnowledgeBaseId(id);
+
+        // Deleta a base de conhecimento
         const result = await this.knowledgeBaseModel
             .deleteOne({ _id: id, userId })
             .exec();
+
         if (result.deletedCount === 0) {
             throw new NotFoundException(`Knowledge base with ID ${id} not found`);
         }
+
+        this.logger.log(`Base de conhecimento ${id} e seus chunks foram excluídos com sucesso`);
     }
 
     async startProcess(id: string, userId: string, bucketFileId: string): Promise<KnowledgeBase> {

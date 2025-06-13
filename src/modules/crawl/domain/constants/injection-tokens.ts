@@ -1,0 +1,2 @@
+export const CRAWL_REPOSITORY = 'CRAWL_REPOSITORY';
+export const CRAWL_SERVICE = 'CRAWL_SERVICE'; 

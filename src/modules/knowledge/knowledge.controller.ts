@@ -8,6 +8,7 @@ import {
     UseGuards,
     Request,
     Req,
+    Patch,
 } from "@nestjs/common";
 import { KnowledgeService } from "./knowledge.service";
 import { JwtAuthGuard } from "../auth/infrastructure/guards/jwt-auth.guard";
@@ -23,6 +24,10 @@ import { CreateKnowledgeBaseDto } from "./dto/create-knowledge-base.dto";
 import { Request as ExpressRequest } from "express";
 import { EmbeddingService } from './domain/services/embedding.service';
 import { OpenAIEmbeddingService } from './domain/services/openai-embedding.service';
+import { FindSimilarChunksDto } from './dto/find-similar-chunks.dto';
+import { UpdateChunkStatusDto } from './dto/update-chunk-status.dto';
+import { SimilarChunkResponseDto } from './dto/similar-chunk-response.dto';
+import { UpdateChunkContentDto } from './dto/update-chunk-content.dto';
 
 interface AuthenticatedRequest extends ExpressRequest {
     user: {
@@ -224,55 +229,21 @@ export class KnowledgeController {
         description: "Busca chunks de texto similares usando embeddings da OpenAI",
     })
     @ApiParam({ name: "knowledgeBaseId", description: "ID da base de conhecimento" })
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                text: {
-                    type: 'string',
-                    description: 'Texto para busca de similaridade',
-                },
-                limit: {
-                    type: 'number',
-                    description: 'Número máximo de resultados (padrão: 5)',
-                    default: 5,
-                },
-            },
-            required: ['text'],
-        },
-    })
+    @ApiBody({ type: FindSimilarChunksDto })
     @ApiResponse({
         status: 200,
         description: "Chunks similares encontrados",
-        schema: {
-            type: 'array',
-            items: {
-                type: 'object',
-                properties: {
-                    id: { type: 'string' },
-                    content: { type: 'string' },
-                    similarity: { type: 'number' },
-                    meta: {
-                        type: 'object',
-                        properties: {
-                            tokenCount: { type: 'number' },
-                            pageNumber: { type: 'number' },
-                            section: { type: 'string' },
-                        },
-                    },
-                },
-            },
-        },
+        type: [SimilarChunkResponseDto]
     })
     @ApiResponse({ status: 401, description: "Não autorizado" })
     @ApiResponse({ status: 404, description: "Base de conhecimento não encontrada" })
     async findSimilarChunksByText(
         @Param("knowledgeBaseId") knowledgeBaseId: string,
-        @Body() body: { text: string; limit?: number },
+        @Body() body: FindSimilarChunksDto,
         @Req() req: AuthenticatedRequest,
-    ) {
+    ): Promise<SimilarChunkResponseDto[]> {
         const userId = req.user.id;
-        const { text, limit = 5 } = body;
+        const { text, limit = 5, onlyEnabled = true } = body;
 
         // Verifica se a base existe e pertence ao usuário
         await this.knowledgeService.getKnowledgeBaseById(knowledgeBaseId, userId);
@@ -285,14 +256,172 @@ export class KnowledgeController {
             knowledgeBaseId,
             userId,
             embedding,
-            limit
+            limit,
+            onlyEnabled
         );
 
         return chunks.map(chunk => ({
             id: chunk.id,
             content: chunk.content,
             similarity: chunk.similarity,
+            enable: chunk.enable,
             meta: chunk.meta,
+            statusUrl: `/user/knowledge/${knowledgeBaseId}/chunks/${chunk.id}/status`
         }));
+    }
+
+    @Patch(":knowledgeBaseId/chunks/:chunkId/status")
+    @ApiOperation({
+        summary: "Atualizar status de um chunk",
+        description: "Ativa ou desativa um chunk específico da base de conhecimento",
+    })
+    @ApiParam({ name: "knowledgeBaseId", description: "ID da base de conhecimento" })
+    @ApiParam({ name: "chunkId", description: "ID do chunk a ser atualizado" })
+    @ApiBody({ type: UpdateChunkStatusDto })
+    @ApiResponse({
+        status: 200,
+        description: "Status do chunk atualizado com sucesso",
+        schema: {
+            type: 'object',
+            properties: {
+                id: { type: 'string' },
+                content: { type: 'string' },
+                enable: { type: 'boolean' },
+                meta: {
+                    type: 'object',
+                    properties: {
+                        tokenCount: { type: 'number' },
+                        pageNumber: { type: 'number' },
+                        section: { type: 'string' },
+                    },
+                },
+                createdAt: { type: 'string', format: 'date-time' },
+                updatedAt: { type: 'string', format: 'date-time' },
+            },
+        },
+    })
+    @ApiResponse({ status: 401, description: "Não autorizado" })
+    @ApiResponse({ status: 404, description: "Chunk não encontrado" })
+    async updateChunkStatus(
+        @Param("knowledgeBaseId") knowledgeBaseId: string,
+        @Param("chunkId") chunkId: string,
+        @Body() body: UpdateChunkStatusDto,
+        @Req() req: AuthenticatedRequest,
+    ) {
+        const userId = req.user.id;
+
+        // Verifica se a base existe e pertence ao usuário
+        await this.knowledgeService.getKnowledgeBaseById(knowledgeBaseId, userId);
+
+        // Atualiza o status do chunk
+        const updatedChunk = await this.embeddingService.updateChunkStatus(
+            chunkId,
+            userId,
+            body.enable
+        );
+
+        return {
+            id: updatedChunk.id,
+            content: updatedChunk.content,
+            enable: updatedChunk.enable,
+            meta: updatedChunk.meta,
+            createdAt: updatedChunk.createdAt,
+            updatedAt: updatedChunk.updatedAt,
+        };
+    }
+
+    @Delete(":knowledgeBaseId/chunks/:chunkId")
+    @ApiOperation({
+        summary: "Deletar um chunk",
+        description: "Remove um chunk específico da base de conhecimento",
+    })
+    @ApiParam({ name: "knowledgeBaseId", description: "ID da base de conhecimento" })
+    @ApiParam({ name: "chunkId", description: "ID do chunk a ser deletado" })
+    @ApiResponse({
+        status: 200,
+        description: "Chunk deletado com sucesso"
+    })
+    @ApiResponse({ status: 401, description: "Não autorizado" })
+    @ApiResponse({ status: 404, description: "Chunk não encontrado" })
+    async deleteChunk(
+        @Param("knowledgeBaseId") knowledgeBaseId: string,
+        @Param("chunkId") chunkId: string,
+        @Req() req: AuthenticatedRequest,
+    ) {
+        const userId = req.user.id;
+
+        // Verifica se a base existe e pertence ao usuário
+        await this.knowledgeService.getKnowledgeBaseById(knowledgeBaseId, userId);
+
+        // Deleta o chunk
+        await this.embeddingService.deleteChunk(chunkId, userId);
+
+        return { message: 'Chunk deletado com sucesso' };
+    }
+
+    @Patch(":knowledgeBaseId/chunks/:chunkId/content")
+    @ApiOperation({
+        summary: "Atualizar conteúdo de um chunk",
+        description: "Atualiza o conteúdo de um chunk específico de uma base de conhecimento",
+    })
+    @ApiParam({ name: "knowledgeBaseId", description: "ID da base de conhecimento" })
+    @ApiParam({ name: "chunkId", description: "ID do chunk a ser atualizado" })
+    @ApiBody({ type: UpdateChunkContentDto })
+    @ApiResponse({
+        status: 200,
+        description: "Conteúdo do chunk atualizado com sucesso",
+        schema: {
+            type: 'object',
+            properties: {
+                id: { type: 'string' },
+                content: { type: 'string' },
+                enable: { type: 'boolean' },
+                meta: {
+                    type: 'object',
+                    properties: {
+                        tokenCount: { type: 'number' },
+                        pageNumber: { type: 'number' },
+                        section: { type: 'string' },
+                    },
+                },
+                createdAt: { type: 'string', format: 'date-time' },
+                updatedAt: { type: 'string', format: 'date-time' },
+            },
+        },
+    })
+    @ApiResponse({ status: 401, description: "Não autorizado" })
+    @ApiResponse({ status: 404, description: "Base de conhecimento ou chunk não encontrado" })
+    async updateChunkContent(
+        @Param("knowledgeBaseId") knowledgeBaseId: string,
+        @Param("chunkId") chunkId: string,
+        @Body() body: UpdateChunkContentDto,
+        @Req() req: AuthenticatedRequest,
+    ) {
+        const userId = req.user.id;
+
+        // Verifica se a base existe e pertence ao usuário
+        await this.knowledgeService.getKnowledgeBaseById(knowledgeBaseId, userId);
+
+        // Atualiza o conteúdo do chunk, gerando novo embedding e atualizando metadados
+        const updatedChunk = await this.embeddingService.updateChunkContent(
+            chunkId,
+            userId,
+            body.content,
+            this.openAIEmbeddingService
+        );
+
+        // Verifica se o chunk pertence à base de conhecimento
+        if (updatedChunk.knowledgeBaseId !== knowledgeBaseId) {
+            throw new Error('Chunk não pertence à base de conhecimento especificada');
+        }
+
+        return {
+            id: updatedChunk.id,
+            content: updatedChunk.content,
+            enable: updatedChunk.enable,
+            meta: updatedChunk.meta,
+            createdAt: updatedChunk.createdAt,
+            updatedAt: updatedChunk.updatedAt,
+        };
     }
 }

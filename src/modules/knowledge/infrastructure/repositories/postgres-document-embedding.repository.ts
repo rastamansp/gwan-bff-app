@@ -62,11 +62,12 @@ export class PostgresDocumentEmbeddingRepository implements IDocumentEmbeddingRe
         knowledgeBaseId: string,
         userId: string,
         embedding: number[],
-        limit: number = 5
+        limit: number = 5,
+        onlyEnabled: boolean = true
     ): Promise<DocumentEmbedding[]> {
         this.logger.debug(`Iniciando busca por similaridade para knowledgeBaseId: ${knowledgeBaseId}, userId: ${userId}`);
-        this.logger.debug(`Embedding recebido: ${JSON.stringify(embedding)}`);
         this.logger.debug(`Tipo do embedding: ${typeof embedding}, É array: ${Array.isArray(embedding)}, Tamanho: ${embedding?.length}`);
+        this.logger.debug(`Filtrando apenas chunks ativos: ${onlyEnabled}`);
 
         if (!embedding || !Array.isArray(embedding) || embedding.length === 0) {
             this.logger.error('Embedding inválido recebido');
@@ -80,12 +81,12 @@ export class PostgresDocumentEmbeddingRepository implements IDocumentEmbeddingRe
             // Converter para o formato que o pgvector espera
             const vectorString = `[${vectorArray.join(',')}]`;
 
-            this.logger.debug(`Vector formatado para PostgreSQL: ${vectorString}`);
+            const enableFilter = onlyEnabled ? 'AND enable = true' : '';
 
             const result = await this.pool.query(
                 `SELECT *, 1 - (embedding <=> $1::vector) as similarity 
                  FROM document_embeddings 
-                 WHERE knowledge_base_id = $2 AND user_id = $3 
+                 WHERE knowledge_base_id = $2 AND user_id = $3 ${enableFilter}
                  ORDER BY embedding <=> $1::vector 
                  LIMIT $4`,
                 [vectorString, knowledgeBaseId, userId, limit]
@@ -102,8 +103,8 @@ export class PostgresDocumentEmbeddingRepository implements IDocumentEmbeddingRe
     async create(embedding: Partial<DocumentEmbedding>): Promise<DocumentEmbedding> {
         const result = await this.pool.query(
             `INSERT INTO document_embeddings 
-             (knowledge_base_id, user_id, bucket_file_id, chunk_index, content, embedding, meta) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) 
+             (knowledge_base_id, user_id, bucket_file_id, chunk_index, content, embedding, meta, enable) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
              RETURNING *`,
             [
                 embedding.knowledgeBaseId,
@@ -112,7 +113,8 @@ export class PostgresDocumentEmbeddingRepository implements IDocumentEmbeddingRe
                 embedding.chunkIndex,
                 embedding.content,
                 embedding.embedding,
-                embedding.meta ? JSON.stringify(embedding.meta) : null
+                embedding.meta ? JSON.stringify(embedding.meta) : null,
+                embedding.enable ?? true
             ]
         );
 
@@ -126,6 +128,104 @@ export class PostgresDocumentEmbeddingRepository implements IDocumentEmbeddingRe
         );
     }
 
+    async updateChunkStatus(id: string, userId: string, enable: boolean): Promise<DocumentEmbedding> {
+        const result = await this.pool.query(
+            `UPDATE document_embeddings 
+             SET enable = $1
+             WHERE id = $2 AND user_id = $3
+             RETURNING *`,
+            [enable, id, userId]
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('Chunk não encontrado ou não pertence ao usuário');
+        }
+
+        return this.mapRowToEntity(result.rows[0]);
+    }
+
+    async deleteChunk(id: string, userId: string): Promise<void> {
+        const result = await this.pool.query(
+            `DELETE FROM document_embeddings 
+             WHERE id = $1 AND user_id = $2`,
+            [id, userId]
+        );
+
+        if (result.rowCount === 0) {
+            throw new Error('Chunk não encontrado ou não pertence ao usuário');
+        }
+    }
+
+    async updateChunkContent(id: string, userId: string, content: string): Promise<DocumentEmbedding> {
+        // Primeiro busca o chunk atual para obter os dados existentes
+        const result = await this.pool.query(
+            `SELECT * FROM document_embeddings 
+             WHERE id = $1 AND user_id = $2`,
+            [id, userId]
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('Chunk não encontrado ou não pertence ao usuário');
+        }
+
+        const currentChunk = this.mapRowToEntity(result.rows[0]);
+
+        // Atualiza os metadados mantendo os existentes e adicionando as novas informações
+        const updatedMeta = {
+            ...currentChunk.meta,
+            updatedAt: new Date().toISOString(),
+            updated: true
+        };
+
+        // Atualiza o chunk com o novo conteúdo e metadados
+        const updateResult = await this.pool.query(
+            `UPDATE document_embeddings 
+             SET content = $1,
+                 meta = $2
+             WHERE id = $3 AND user_id = $4
+             RETURNING *`,
+            [
+                content,
+                JSON.stringify(updatedMeta),
+                id,
+                userId
+            ]
+        );
+
+        return this.mapRowToEntity(updateResult.rows[0]);
+    }
+
+    async updateChunkEmbedding(id: string, userId: string, embedding: number[]): Promise<DocumentEmbedding> {
+        // Garantir que o embedding seja um array de números
+        const vectorArray = embedding.map(Number);
+
+        // Converter para o formato que o pgvector espera
+        const vectorString = `[${vectorArray.join(',')}]`;
+
+        const result = await this.pool.query(
+            `UPDATE document_embeddings 
+             SET embedding = $1::vector
+             WHERE id = $2 AND user_id = $3
+             RETURNING *`,
+            [vectorString, id, userId]
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('Chunk não encontrado ou não pertence ao usuário');
+        }
+
+        return this.mapRowToEntity(result.rows[0]);
+    }
+
+    async deleteByBucketFileId(bucketFileId: string): Promise<void> {
+        this.logger.debug(`Deleting chunks for bucket file ${bucketFileId}`);
+        await this.pool.query(
+            'DELETE FROM document_embeddings WHERE bucket_file_id = $1',
+            [bucketFileId]
+        );
+        this.logger.debug(`Chunks for bucket file ${bucketFileId} deleted successfully`);
+    }
+
     private mapRowToEntity(row: any): DocumentEmbedding {
         return {
             id: row.id.toString(),
@@ -135,6 +235,7 @@ export class PostgresDocumentEmbeddingRepository implements IDocumentEmbeddingRe
             chunkIndex: row.chunk_index,
             content: row.content,
             embedding: row.embedding,
+            enable: row.enable ?? true,
             meta: row.meta,
             createdAt: row.created_at,
             updatedAt: row.updated_at

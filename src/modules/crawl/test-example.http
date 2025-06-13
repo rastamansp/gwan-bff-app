@@ -1,0 +1,124 @@
+### Criar requisição de crawling - Exemplo Simples
+POST http://localhost:3000/api/user/crawling
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+
+{
+  "url": "https://www.google.com",
+  "formats": ["markdown"]
+}
+
+###
+
+### Criar requisição de crawling - Exemplo com JSON Schema
+POST http://localhost:3000/api/user/crawling
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+
+{
+  "url": "https://news.ycombinator.com",
+  "formats": ["json", "markdown"],
+  "jsonOptions": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "top_stories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "url": { "type": "string" },
+              "points": { "type": "number" }
+            },
+            "required": ["title", "url"]
+          }
+        }
+      },
+      "required": ["title", "top_stories"]
+    }
+  }
+}
+
+###
+
+### Criar requisição de crawling - Exemplo para Blog
+POST http://localhost:3000/api/user/crawling
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+
+{
+  "url": "https://blog.pragmaticengineer.com",
+  "formats": ["json"],
+  "jsonOptions": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "blog_title": { "type": "string" },
+        "recent_posts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "url": { "type": "string" },
+              "date": { "type": "string" },
+              "excerpt": { "type": "string" }
+            },
+            "required": ["title", "url"]
+          }
+        },
+        "author": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "bio": { "type": "string" }
+          }
+        }
+      },
+      "required": ["blog_title", "recent_posts"]
+    }
+  }
+}
+
+###
+
+### Listar todas as requisições de crawling do usuário
+GET http://localhost:3000/api/user/crawling
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+
+###
+
+### Buscar uma requisição específica por ID (substitua {id} pelo ID retornado na criação)
+GET http://localhost:3000/api/user/crawling/684b69819633b48e12eafbef
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+
+###
+
+### Exemplo de resposta esperada para criação:
+# {
+#   "id": "507f1f77bcf86cd799439011",
+#   "url": "https://www.google.com",
+#   "status": "pending",
+#   "result": null,
+#   "error": null,
+#   "createdAt": "2025-06-12T23:30:00.000Z",
+#   "updatedAt": "2025-06-12T23:30:00.000Z"
+# }
+
+###
+
+### Exemplo de resposta esperada para consulta (quando concluído):
+# {
+#   "id": "507f1f77bcf86cd799439011",
+#   "url": "https://www.google.com",
+#   "status": "completed",
+#   "result": {
+#     "markdown": "# Google\n\nGoogle é um motor de busca...",
+#     "json": { "title": "Google", "description": "..." }
+#   },
+#   "error": null,
+#   "createdAt": "2025-06-12T23:30:00.000Z",
+#   "updatedAt": "2025-06-12T23:35:00.000Z"
+# } 

@@ -12,6 +12,7 @@ import { KnowledgeModule } from "./modules/knowledge/knowledge.module";
 import { RabbitMQModule } from './modules/rabbitmq/rabbitmq.module';
 import { UsersModule } from "./modules/users/users.module";
 import { ProfileModule } from './modules/profile/profile.module';
+import { CrawlModule } from './modules/crawl/crawl.module';
 import configuration from './config/configuration';
 import { ChatbotsModule } from './modules/chatbots/chatbots.module';
 
@@ -42,7 +43,8 @@ import { ChatbotsModule } from './modules/chatbots/chatbots.module';
     RabbitMQModule,
     UsersModule,
     ProfileModule,
-    ChatbotsModule
+    ChatbotsModule,
+    CrawlModule
   ],
   controllers: [AppController],
   providers: [AppService],
