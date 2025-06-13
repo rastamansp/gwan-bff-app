@@ -6,6 +6,7 @@ import * as mongoose from "mongoose";
 import { ConfigService } from "@nestjs/config";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
+import { validateEnv } from "./config/env.validation";
 
 function printRoutesInfo() {
   const logger = new Logger('Routes');
@@ -62,6 +63,9 @@ async function bootstrap() {
   const logger = new Logger("Bootstrap");
 
   try {
+    // Validar variáveis de ambiente
+    validateEnv();
+
     // Adiciona listener para logs do Mongoose
     mongoose.connection.on("connected", async () => {
       logger.log("[MongoDB] Conexão estabelecida com sucesso");

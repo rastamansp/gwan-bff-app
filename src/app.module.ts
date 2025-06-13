@@ -20,7 +20,11 @@ import { ChatbotsModule } from './modules/chatbots/chatbots.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ".env",
+      envFilePath: process.env.NODE_ENV === 'production'
+        ? '.env.production'
+        : process.env.NODE_ENV === 'test'
+          ? '.env.test'
+          : '.env',
       expandVariables: true,
       cache: true,
       load: [configuration],
@@ -28,8 +32,7 @@ import { ChatbotsModule } from './modules/chatbots/chatbots.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const uri = configService.get("database.uri") ||
-          "mongodb://gwan:pazdeDeus2025@mongodb.gwan.com.br:27017/gwan?authSource=admin";
+        const uri = configService.get("database.uri");
         return { uri };
       },
       inject: [ConfigService],

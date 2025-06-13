@@ -1,56 +1,16 @@
 services:
   api:
     build:
-      #context: .
-      context: https://github.com/rastamansp/gwan-bff-app.git # Usa o repositório git como contexto
-
+      context: https://github.com/rastamansp/gwan-bff-app.git
       dockerfile: Dockerfile
     container_name: gwan_bff_api
     restart: unless-stopped
     ports:
-      - "3000:3000" # Mapeia a porta 3000 do host para o container
-    environment:
-      # Server Configuration
-      - NODE_ENV=production
-      - PORT=3000
-      - TZ=America/Sao_Paulo
-      - API_PREFIX=api
-      - API_URL=https://bff.gwan.com.br
-      #- SWAGGER="{ title: 'GWAN API', description: 'API do sistema GWAN', version: '1.0'}"
-
-      # MongoDB Configuration
-      - MONGODB_URI=mongodb://gwan:pazdeDeus2025@mongodb:27017/gwan?authSource=admin
-
-      # JWT Configuration
-      - JWT_SECRET=gwan-secret-key-production-2024
-      - JWT_EXPIRATION=1d
-
-      # SMTP Configuration
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_SECURE=false
-      - SMTP_USER=pedro.hp.almeida@gmail.com
-      - SMTP_PASSWORD=bqat yxtq nmby oghk
-      - SMTP_FROM_NAME=GWAN
-      - SMTP_FROM_EMAIL=noreply@gwan.com.br
-
-      # RabbitMQ Configuration
-      - RABBITMQ_URL=amqp://root:pazdeDeus2025@rabbitmq.gwan.com.br:5672
-      - RABBITMQ_QUEUE=notifications
-
-      # MINIO Configuration
-      - MINIO_ENDPOINT=minio.gwan.com.br
-      - MINIO_BUCKET=gwan
-      - MINIO_PORT=443
-      - MINIO_USE_SSL=true
-      - MINIO_ACCESS_KEY=GBto9hcKkj47L0lRYq61
-      - MINIO_SECRET_KEY=igBJzMdF7yaWznpXEKNpwRACHDQXrSwxFjZJaE1t
-      - MINIO_BUCKET=datasets
-
-      # CORS Configuration
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,https://bff.gwan.com.br,https://www.bff.gwan.com.br,https://admin.gwan.com.br,https://www.admin.gwan.com.br
+      - "3000:3000"
+    env_file:
+      - .env.production
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health" ] # Atualizado para incluir o prefixo api
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health" ]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -89,8 +49,8 @@ services:
       # Apply both middlewares
       - "traefik.http.routers.gwan-bff.middlewares=gwan-bff-headers,gwan-bff-cors"
     networks:
-      - gwan # Usa a rede externa 'gwan'
+      - gwan
 
 networks:
   gwan:
-    external: true # Rede deve existir previamente no Docker
+    external: true

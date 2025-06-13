@@ -8,21 +8,16 @@ export default () => ({
         expiresIn: process.env.JWT_EXPIRES_IN || '1d',
     },
     cors: {
-        origin: [
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'https://bff.gwan.com.br',
-            'https://www.bff.gwan.com.br',
-            'https://admin.gwan.com.br',
-            'https://www.admin.gwan.com.br',
-        ],
+        origin: process.env.ALLOWED_ORIGINS
+            ? process.env.ALLOWED_ORIGINS.split(',')
+            : ['http://localhost:5173', 'http://localhost:5174'],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
     },
     swagger: {
-        title: 'GWAN API',
-        description: 'API do sistema GWAN',
-        version: '1.0',
+        title: process.env.SWAGGER_TITLE || 'GWAN API',
+        description: process.env.SWAGGER_DESCRIPTION || 'API do sistema GWAN',
+        version: process.env.SWAGGER_VERSION || '1.0',
     },
 }); 

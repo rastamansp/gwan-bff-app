@@ -19,6 +19,9 @@ FROM node:20-bullseye-slim
 
 WORKDIR /app
 
+# Definir NODE_ENV para produção
+ENV NODE_ENV=production
+
 # Instale o wget para o healthcheck funcionar
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
