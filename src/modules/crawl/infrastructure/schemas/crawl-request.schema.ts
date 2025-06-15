@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type CrawlRequestDocument = CrawlRequestSchema & Document;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'crawl_requests' })
 export class CrawlRequestSchema {
     @Prop({ type: Types.ObjectId, required: true })
     userId: Types.ObjectId;

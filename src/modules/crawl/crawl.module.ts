@@ -13,7 +13,7 @@ import { CRAWL_REPOSITORY, CRAWL_SERVICE } from './domain/constants/injection-to
 @Module({
     imports: [
         MongooseModule.forFeature([
-            { name: CrawlRequestSchema.name, schema: CrawlRequestSchemaFactory },
+            { name: 'CrawlRequest', schema: CrawlRequestSchemaFactory },
         ]),
         ConfigModule,
     ],

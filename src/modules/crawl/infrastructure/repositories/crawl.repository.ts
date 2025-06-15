@@ -10,7 +10,7 @@ export class CrawlRepository implements ICrawlRepository {
     private readonly logger = new Logger(CrawlRepository.name);
 
     constructor(
-        @InjectModel(CrawlRequestSchema.name)
+        @InjectModel('CrawlRequest')
         private readonly crawlRequestModel: Model<CrawlRequestDocument>,
     ) { }
 
