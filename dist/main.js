@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const config_1 = require("@nestjs/config");
 const http_exception_filter_1 = require("./shared/filters/http-exception.filter");
 const logging_interceptor_1 = require("./shared/interceptors/logging.interceptor");
+const env_validation_1 = require("./config/env.validation");
 function printRoutesInfo() {
     const logger = new common_1.Logger('Routes');
     const baseUrl = process.env.API_URL;
@@ -49,6 +50,7 @@ function printRoutesInfo() {
 async function bootstrap() {
     const logger = new common_1.Logger("Bootstrap");
     try {
+        (0, env_validation_1.validateEnv)();
         mongoose.connection.on("connected", async () => {
             logger.log("[MongoDB] Conexão estabelecida com sucesso");
             try {

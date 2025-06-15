@@ -1,0 +1,26 @@
+### Obter perfil do usuário
+GET http://localhost:3000/api/users/profile
+Authorization: Bearer <token>
+
+###
+
+### Atualizar perfil do usuário
+PUT http://localhost:3000/api/users/profile
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "name": "Novo Nome",
+  "bio": "Nova bio do usuário"
+}
+
+###
+
+### Exemplo de resposta esperada para perfil:
+# {
+#   "id": "507f1f77bcf86cd799439011",
+#   "email": "usuario@exemplo.com",
+#   "name": "Novo Nome",
+#   "bio": "Nova bio do usuário",
+#   "createdAt": "2025-06-12T23:30:00.000Z"
+# } 

@@ -1,0 +1,52 @@
+### Criar conhecimento
+POST http://localhost:3000/api/knowledge
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "title": "Título do conhecimento",
+  "content": "Conteúdo detalhado do conhecimento",
+  "tags": ["tag1", "tag2"]
+}
+
+###
+
+### Listar conhecimentos
+GET http://localhost:3000/api/knowledge
+Authorization: Bearer <token>
+
+###
+
+### Buscar conhecimento por ID
+GET http://localhost:3000/api/knowledge/{id}
+Authorization: Bearer <token>
+
+###
+
+### Atualizar conhecimento
+PUT http://localhost:3000/api/knowledge/{id}
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "title": "Novo título",
+  "content": "Novo conteúdo",
+  "tags": ["tag1", "tag3"]
+}
+
+###
+
+### Deletar conhecimento
+DELETE http://localhost:3000/api/knowledge/{id}
+Authorization: Bearer <token>
+
+###
+
+### Exemplo de resposta esperada para criação:
+# {
+#   "id": "507f1f77bcf86cd799439011",
+#   "title": "Título do conhecimento",
+#   "content": "Conteúdo detalhado do conhecimento",
+#   "tags": ["tag1", "tag2"],
+#   "createdAt": "2025-06-12T23:30:00.000Z"
+# } 

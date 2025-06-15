@@ -54,8 +54,11 @@ services:
       # OpenAI
       - OPENAI_API_KEY=your-openai-api-key
       
-      # PostgreSQL
-      - POSTGRES_URL=postgresql://gwan:pazdeDeus2025@postgres.gwan.com.br:5432/gwan
+      # Postgres Vector Configuration
+      - POSTGRES_URL=postgresql://postgres:pazdedeus@postgres.gwan.com.br:5433/gwan_vector
+
+      # Crawl Configuration
+      - FIRECRAWL_API_URL=https://firecrawl.gwan.com.br
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health" ]
       interval: 30s

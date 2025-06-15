@@ -1,0 +1,26 @@
+### Visualizar perfil
+GET http://localhost:3000/api/profile
+Authorization: Bearer <token>
+
+###
+
+### Atualizar perfil
+PUT http://localhost:3000/api/profile
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "name": "Nome Atualizado",
+  "bio": "Bio atualizada"
+}
+
+###
+
+### Exemplo de resposta esperada para visualização:
+# {
+#   "id": "507f1f77bcf86cd799439011",
+#   "email": "usuario@exemplo.com",
+#   "name": "Nome Atualizado",
+#   "bio": "Bio atualizada",
+#   "createdAt": "2025-06-12T23:30:00.000Z"
+# } 

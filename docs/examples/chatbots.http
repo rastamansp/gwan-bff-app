@@ -1,0 +1,42 @@
+### Criar chatbot
+POST http://localhost:3000/api/chatbots
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "name": "Meu Chatbot",
+  "description": "Chatbot para atendimento"
+}
+
+###
+
+### Listar chatbots
+GET http://localhost:3000/api/chatbots
+Authorization: Bearer <token>
+
+###
+
+### Enviar mensagem para chatbot
+POST http://localhost:3000/api/chatbots/{id}/message
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "message": "Olá, chatbot!"
+}
+
+###
+
+### Deletar chatbot
+DELETE http://localhost:3000/api/chatbots/{id}
+Authorization: Bearer <token>
+
+###
+
+### Exemplo de resposta esperada para criação:
+# {
+#   "id": "507f1f77bcf86cd799439011",
+#   "name": "Meu Chatbot",
+#   "description": "Chatbot para atendimento",
+#   "createdAt": "2025-06-12T23:30:00.000Z"
+# } 

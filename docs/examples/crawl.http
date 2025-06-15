@@ -1,7 +1,8 @@
 ### Criar requisição de crawling - Exemplo Simples
+# POST https://bff.gwan.com.br/api/user/crawling
 POST http://localhost:3000/api/user/crawling
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk5NTI4NDEsImV4cCI6MTc1MDAzOTI0MX0.d77ehvyjfxUvlDaF8dlIulxv9-fNyyuaD931hi8QKKc
 
 {
   "url": "https://www.google.com",
@@ -13,7 +14,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1N
 ### Criar requisição de crawling - Exemplo com JSON Schema
 POST http://localhost:3000/api/user/crawling
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+Authorization: Bearer <token>
 
 {
   "url": "https://news.ycombinator.com",
@@ -46,7 +47,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1N
 ### Criar requisição de crawling - Exemplo para Blog
 POST http://localhost:3000/api/user/crawling
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+Authorization: Bearer <token>
 
 {
   "url": "https://blog.pragmaticengineer.com",
@@ -86,13 +87,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1N
 
 ### Listar todas as requisições de crawling do usuário
 GET http://localhost:3000/api/user/crawling
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+Authorization: Bearer <token>
 
 ###
 
 ### Buscar uma requisição específica por ID (substitua {id} pelo ID retornado na criação)
-GET http://localhost:3000/api/user/crawling/684b69819633b48e12eafbef
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODFmZWQ1NjZiNzU0OWIxNjRhNDIwZDMiLCJlbWFpbCI6InBlZHJvLmhwLmFsbWVpZGFAZ21haWwuY29tIiwiaXNFbWFpbFZlcmlmaWVkIjp0cnVlLCJpYXQiOjE3NDk3NzA2MzQsImV4cCI6MTc0OTg1NzAzNH0.mlvtEZtk9RPXeMO7tKdZ-Pw1oE7QUsrgvbRCBVFZ_r8
+GET http://localhost:3000/api/user/crawling/{id}
+Authorization: Bearer <token>
 
 ###
 

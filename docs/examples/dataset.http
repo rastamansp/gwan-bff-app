@@ -1,0 +1,35 @@
+### Upload de dataset
+POST http://localhost:3000/api/user/dataset
+Content-Type: multipart/form-data
+Authorization: Bearer <token>
+
+# FormData:
+# file: <arquivo.csv>
+
+###
+
+### Listar datasets
+GET http://localhost:3000/api/user/dataset
+Authorization: Bearer <token>
+
+###
+
+### Buscar dataset por ID
+GET http://localhost:3000/api/user/dataset/{id}
+Authorization: Bearer <token>
+
+###
+
+### Deletar dataset
+DELETE http://localhost:3000/api/user/dataset/{id}
+Authorization: Bearer <token>
+
+###
+
+### Exemplo de resposta esperada para upload:
+# {
+#   "id": "507f1f77bcf86cd799439011",
+#   "filename": "arquivo.csv",
+#   "status": "uploaded",
+#   "createdAt": "2025-06-12T23:30:00.000Z"
+# } 
