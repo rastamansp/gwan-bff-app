@@ -1,6 +1,7 @@
 import { IsString, IsArray, IsOptional, IsUrl, IsObject } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 
+@ApiSchema({ name: 'CreateCrawlRequestModel' })
 export class CreateCrawlRequestDto {
     @ApiProperty({
         description: 'URL para fazer crawling',

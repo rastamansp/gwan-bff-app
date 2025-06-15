@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 
+@ApiSchema({ name: 'CrawlResponseModel' })
 export class CrawlResponseDto {
     @ApiProperty({ description: 'ID da requisição de crawling' })
     id: string;

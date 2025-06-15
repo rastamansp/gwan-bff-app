@@ -127,7 +127,29 @@ async function bootstrap() {
       )
       .build();
 
-    const document = SwaggerModule.createDocument(app, config);
+    const document = SwaggerModule.createDocument(app, config, {
+      extraModels: [],
+      operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+      deepScanRoutes: true,
+    });
+
+    // Configurar nomes únicos para schemas
+    if (document.components && document.components.schemas) {
+      const schemas = document.components.schemas;
+      const newSchemas = {};
+
+      Object.keys(schemas).forEach(key => {
+        const schema = schemas[key];
+        if (schema && typeof schema === 'object') {
+          // Garantir que cada schema tenha um nome único
+          const newKey = key.length <= 2 ? `Schema_${key}` : key;
+          newSchemas[newKey] = schema;
+        }
+      });
+
+      document.components.schemas = newSchemas;
+    }
+
     SwaggerModule.setup("api", app, document);
 
     app.useGlobalPipes(new ValidationPipe({
