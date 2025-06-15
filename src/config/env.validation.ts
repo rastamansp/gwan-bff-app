@@ -2,11 +2,15 @@ export function validateEnv() {
     const requiredEnvVars = [
         'NODE_ENV',
         'PORT',
-        'API_URL',
         'MONGODB_URI',
         'JWT_SECRET',
         'ALLOWED_ORIGINS'
     ];
+
+    // API_URL é obrigatória apenas em produção
+    if (process.env.NODE_ENV === 'production') {
+        requiredEnvVars.push('API_URL');
+    }
 
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 

@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: 'SimilarChunkResponseModel' })
 export class SimilarChunkResponseDto {
     @ApiProperty({
         description: 'ID do chunk',

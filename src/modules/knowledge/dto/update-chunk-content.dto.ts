@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: 'UpdateChunkContentModel' })
 export class UpdateChunkContentDto {
     @ApiProperty({
         description: 'Novo conteúdo do chunk',

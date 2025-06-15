@@ -1,6 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsNumber, IsBoolean } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: 'FindSimilarChunksModel' })
 export class FindSimilarChunksDto {
     @ApiProperty({
         description: 'Texto para busca de similaridade',

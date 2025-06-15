@@ -7,30 +7,59 @@ import { ConfigService } from "@nestjs/config";
 import { HttpExceptionFilter } from "./shared/filters/http-exception.filter";
 import { LoggingInterceptor } from "./shared/interceptors/logging.interceptor";
 import { validateEnv } from "./config/env.validation";
+import { displayVersionInfo, getPackageInfo } from "./utils/version.util";
 
 function printRoutesInfo() {
   const logger = new Logger('Routes');
-  const baseUrl = process.env.API_URL;
+  const baseUrl = process.env.API_URL || 'http://localhost:3000';
+  const packageInfo = getPackageInfo();
 
-  logger.log('=== Informações da API ===');
-  logger.log(`Swagger: ${baseUrl}/api`);
-  logger.log(`API: ${baseUrl}`);
-  logger.log('Rotas por domínio:');
+  logger.log('=== INFORMÇÕES DA API ===');
+  logger.log(`🚀 Versão: ${packageInfo.version}`);
+  logger.log(`📦 Nome: ${packageInfo.name}`);
+  logger.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`🔗 Swagger: ${baseUrl}/api`);
+  logger.log(`🔗 API: ${baseUrl}`);
+  logger.log('📋 Rotas por domínio:');
+
+  // App (Root)
+  logger.log('\n🏠 App (/)');
+  logger.log('GET / - Hello World');
 
   // Auth
-  logger.log('Auth (/auth)');
+  logger.log('\n🔐 Auth (/auth)');
   logger.log('POST /auth/register - Registro de usuário');
   logger.log('POST /auth/login - Login de usuário');
   logger.log('POST /auth/verify-code - Verificação de código');
   logger.log('POST /auth/verify-login-code - Verificação de código de login');
 
-  // User
-  logger.log('User (/users)');
-  logger.log('GET /users/profile - Obter perfil do usuário');
-  logger.log('PUT /users/profile - Atualizar perfil do usuário');
+  // Hello
+  logger.log('\n👋 Hello (/hello)');
+  logger.log('GET /hello - Mensagem de boas-vindas');
 
-  // Knowledge
-  logger.log('Knowledge (/knowledge)');
+  // Health
+  logger.log('\n💚 Health (/health)');
+  logger.log('GET /health - Verificação de saúde da aplicação');
+  logger.log('GET /health/version - Informações de versão da aplicação');
+
+  // Users
+  logger.log('\n👥 Users (/users)');
+  logger.log('GET /users - Listar todos os usuários');
+  logger.log('GET /users/:id - Buscar usuário por ID');
+  logger.log('PUT /users/:id - Atualizar usuário');
+
+  // Profile
+  logger.log('\n👤 Profile (/profile)');
+  logger.log('GET /profile - Obter perfil do usuário');
+  logger.log('PUT /profile - Atualizar perfil do usuário');
+
+  // User Profile
+  logger.log('\n👤 User Profile (/user/profile)');
+  logger.log('GET /user/profile - Obter perfil do usuário autenticado');
+  logger.log('PATCH /user/profile - Atualizar perfil do usuário');
+
+  // Knowledge (Public)
+  logger.log('\n📚 Knowledge (/knowledge)');
   logger.log('GET /knowledge - Listar todo conhecimento');
   logger.log('GET /knowledge/:id - Buscar conhecimento por ID');
   logger.log('GET /knowledge/category/:category - Buscar por categoria');
@@ -40,29 +69,60 @@ function printRoutesInfo() {
   logger.log('POST /knowledge - Criar conhecimento');
   logger.log('PUT /knowledge/:id - Atualizar conhecimento');
 
+  // User Knowledge
+  logger.log('\n📚 User Knowledge (/user/knowledge)');
+  logger.log('POST /user/knowledge - Criar conhecimento do usuário');
+  logger.log('GET /user/knowledge - Listar conhecimento do usuário');
+  logger.log('GET /user/knowledge/:id - Buscar conhecimento por ID');
+  logger.log('DELETE /user/knowledge/:id - Deletar conhecimento');
+  logger.log('POST /user/knowledge/:knowledgeBaseId/start-process/:bucketFileId - Iniciar processamento');
+  logger.log('POST /user/knowledge/:knowledgeBaseId/similar - Buscar similaridades');
+  logger.log('PATCH /user/knowledge/:knowledgeBaseId/chunks/:chunkId/status - Atualizar status do chunk');
+  logger.log('DELETE /user/knowledge/:knowledgeBaseId/chunks/:chunkId - Deletar chunk');
+  logger.log('PATCH /user/knowledge/:knowledgeBaseId/chunks/:chunkId/content - Atualizar conteúdo do chunk');
+
   // Dataset
-  logger.log('Dataset (/user/dataset)');
-  logger.log('POST /user/dataset - Upload de dataset');
-  logger.log('GET /user/dataset - Listar datasets');
-  logger.log('GET /user/dataset/:id - Buscar dataset por ID');
+  logger.log('\n📁 Dataset (/user/datasets)');
+  logger.log('POST /user/datasets/upload - Upload de dataset');
+  logger.log('POST /user/datasets/:datasetId/documents - Adicionar documentos ao dataset');
+  logger.log('GET /user/datasets/files - Listar arquivos');
+  logger.log('GET /user/datasets/:datasetId/documents - Listar documentos do dataset');
+  logger.log('DELETE /user/datasets/files/:id - Deletar arquivo');
+  logger.log('DELETE /user/datasets/:datasetId/documents/:documentId - Deletar documento');
 
-  // Health
-  logger.log('Health (/health)');
-  logger.log('GET /health - Verificação de saúde da aplicação');
+  // Crawling
+  logger.log('\n🕷️  Crawling (/user/crawling)');
+  logger.log('POST /user/crawling - Criar solicitação de crawling');
+  logger.log('GET /user/crawling - Listar solicitações de crawling');
+  logger.log('GET /user/crawling/:id - Buscar solicitação de crawling por ID');
 
-  logger.log('Observações:');
-  logger.log('- Todas as rotas (exceto /auth/* e /health) requerem autenticação JWT');
+  // Chatbots
+  logger.log('\n🤖 Chatbots (/chatbots)');
+  logger.log('POST /chatbots - Criar chatbot');
+  logger.log('GET /chatbots - Listar chatbots');
+  logger.log('PUT /chatbots/:id - Atualizar chatbot');
+  logger.log('PUT /chatbots/:id/n8n-config - Atualizar configuração N8N');
+  logger.log('PUT /chatbots/:id/vector-config - Atualizar configuração de vetores');
+  logger.log('PUT /chatbots/:id/status - Atualizar status do chatbot');
+  logger.log('DELETE /chatbots/:id - Deletar chatbot');
+
+  logger.log('\n📝 Observações:');
+  logger.log('- Todas as rotas (exceto /auth/*, /health, /hello e /) requerem autenticação JWT');
   logger.log('- A documentação completa está disponível no Swagger UI');
   logger.log('- As rotas estão organizadas por domínio seguindo princípios de Clean Architecture');
   logger.log('- Cada rota possui validação de DTOs e tratamento de erros');
   logger.log('- As respostas são padronizadas e documentadas com Swagger');
-  logger.log('- Maiores detalhes acesse http://localhost:3000/api');
+  logger.log(`- Maiores detalhes acesse ${baseUrl}/api`);
+  logger.log('================================\n');
 }
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap");
 
   try {
+    // Exibir informações de versão
+    displayVersionInfo();
+
     // Validar variáveis de ambiente
     validateEnv();
 
@@ -133,16 +193,29 @@ async function bootstrap() {
       deepScanRoutes: true,
     });
 
-    // Configurar nomes únicos para schemas
+    // Configurar nomes únicos para schemas e evitar conflitos
     if (document.components && document.components.schemas) {
       const schemas = document.components.schemas;
       const newSchemas = {};
+      const usedNames = new Set();
 
       Object.keys(schemas).forEach(key => {
         const schema = schemas[key];
         if (schema && typeof schema === 'object') {
-          // Garantir que cada schema tenha um nome único
-          const newKey = key.length <= 2 ? `Schema_${key}` : key;
+          // Garantir que cada schema tenha um nome único e descritivo
+          let newKey = key;
+
+          // Se o nome for muito curto ou já foi usado, criar um nome único
+          if (key.length <= 2 || usedNames.has(key)) {
+            newKey = `Schema_${key}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          }
+
+          // Se ainda houver conflito, adicionar prefixo
+          if (usedNames.has(newKey)) {
+            newKey = `Unique_${newKey}`;
+          }
+
+          usedNames.add(newKey);
           newSchemas[newKey] = schema;
         }
       });

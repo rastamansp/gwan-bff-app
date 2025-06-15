@@ -1,10 +1,16 @@
 {
   "name": "gwan-bff-app",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Backend for Frontend application for Gwan",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "buildInfo": {
+    "version": "1.0.0",
+    "buildDate": "2024-12-19T23:53:00.000Z",
+    "environment": "production",
+    "commit": "main"
+  },
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "prebuild": "rimraf dist",
