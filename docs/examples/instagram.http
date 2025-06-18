@@ -1,0 +1,26 @@
+### Instagram API Examples
+
+### Process Instagram Profile
+POST http://localhost:3000/api/instagram/profile
+Content-Type: application/json
+
+{
+  "username": "juniordreadbr"
+}
+
+###
+
+### Process Instagram Profile - Another Example
+POST http://localhost:3000/api/instagram/profile
+Content-Type: application/json
+
+{
+  "username": "outro_usuario"
+}
+
+###
+
+### Exemplo de resposta esperada:
+# {
+#   "message": "OK"
+# } 
