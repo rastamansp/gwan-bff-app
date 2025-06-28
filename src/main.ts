@@ -212,13 +212,39 @@ async function bootstrap() {
           if (schema && typeof schema === 'object' && key.length > 2) {
             // Garantir que o schema tenha propriedades válidas
             const schemaObj = schema as any;
-            if (schemaObj.properties || schemaObj.type || schemaObj.items) {
+            if (schemaObj.properties || schemaObj.type || schemaObj.items || schemaObj.$ref) {
               validSchemas[key] = schema;
             }
           }
         });
 
         document.components.schemas = validSchemas;
+      }
+
+      // Validar e corrigir paths para evitar problemas de roteamento
+      if (document.paths) {
+        Object.keys(document.paths).forEach(path => {
+          const pathItem = document.paths[path];
+          if (pathItem) {
+            Object.keys(pathItem).forEach(method => {
+              const operation = pathItem[method];
+              if (operation && typeof operation === 'object') {
+                // Garantir que operationId seja único e válido
+                if (!operation.operationId) {
+                  operation.operationId = `${method}_${path.replace(/\//g, '_').replace(/[{}]/g, '')}`;
+                }
+
+                // Garantir que tags sejam válidas
+                if (!operation.tags || operation.tags.length === 0) {
+                  const pathParts = path.split('/').filter(part => part.length > 0);
+                  if (pathParts.length > 0) {
+                    operation.tags = [pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(1)];
+                  }
+                }
+              }
+            });
+          }
+        });
       }
 
       SwaggerModule.setup("api", app, document, {
@@ -228,6 +254,9 @@ async function bootstrap() {
           filter: true,
           showExtensions: true,
           showCommonExtensions: true,
+          docExpansion: 'list',
+          defaultModelsExpandDepth: 1,
+          defaultModelExpandDepth: 1,
         },
         customSiteTitle: 'GWAN API Documentation',
         customCss: '.swagger-ui .topbar { display: none }',
