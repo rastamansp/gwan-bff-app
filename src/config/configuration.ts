@@ -17,7 +17,15 @@ export default () => ({
     },
     swagger: {
         title: process.env.SWAGGER_TITLE || 'GWAN API',
-        description: process.env.SWAGGER_DESCRIPTION || 'API do sistema GWAN',
+        description: process.env.SWAGGER_DESCRIPTION || 'API do sistema GWAN - Backend for Frontend (BFF)',
         version: process.env.SWAGGER_VERSION || '1.0',
+        contact: {
+            name: 'GWAN Team',
+            email: 'support@gwan.com.br'
+        },
+        license: {
+            name: 'MIT',
+            url: 'https://opensource.org/licenses/MIT'
+        }
     },
 }); 

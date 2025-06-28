@@ -165,65 +165,77 @@ async function bootstrap() {
     app.enableCors(configService.get('cors'));
 
     // Configuração do Swagger
-    const swaggerConfig = configService.get('swagger') || {
-      title: 'GWAN API',
-      description: 'API do sistema GWAN',
-      version: '1.0'
-    };
-    const config = new DocumentBuilder()
-      .setTitle(swaggerConfig.title)
-      .setDescription(swaggerConfig.description)
-      .setVersion(swaggerConfig.version)
-      .addBearerAuth(
-        {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-          name: "JWT",
-          description: "Enter JWT token",
-          in: "header",
-        },
-        "JWT",
-      )
-      .build();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const enableSwagger = process.env.ENABLE_SWAGGER === 'true' || !isProduction;
 
-    const document = SwaggerModule.createDocument(app, config, {
-      extraModels: [],
-      operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
-      deepScanRoutes: true,
-    });
+    if (enableSwagger) {
+      const swaggerConfig = configService.get('swagger') || {
+        title: 'GWAN API',
+        description: 'API do sistema GWAN - Backend for Frontend (BFF)',
+        version: '1.0'
+      };
+      const config = new DocumentBuilder()
+        .setTitle(swaggerConfig.title)
+        .setDescription(swaggerConfig.description)
+        .setVersion(swaggerConfig.version)
+        .addBearerAuth(
+          {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+            name: "JWT",
+            description: "Enter JWT token",
+            in: "header",
+          },
+          "JWT",
+        )
+        .addServer(process.env.API_URL || 'http://localhost:3000', 'Servidor Principal')
+        .setContact(swaggerConfig.contact?.name || 'GWAN Team', swaggerConfig.contact?.email || 'support@gwan.com.br', 'https://gwan.com.br')
+        .setLicense(swaggerConfig.license?.name || 'MIT', swaggerConfig.license?.url || 'https://opensource.org/licenses/MIT')
+        .build();
 
-    // Configurar nomes únicos para schemas e evitar conflitos
-    if (document.components && document.components.schemas) {
-      const schemas = document.components.schemas;
-      const newSchemas = {};
-      const usedNames = new Set();
-
-      Object.keys(schemas).forEach(key => {
-        const schema = schemas[key];
-        if (schema && typeof schema === 'object') {
-          // Garantir que cada schema tenha um nome único e descritivo
-          let newKey = key;
-
-          // Se o nome for muito curto ou já foi usado, criar um nome único
-          if (key.length <= 2 || usedNames.has(key)) {
-            newKey = `Schema_${key}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          }
-
-          // Se ainda houver conflito, adicionar prefixo
-          if (usedNames.has(newKey)) {
-            newKey = `Unique_${newKey}`;
-          }
-
-          usedNames.add(newKey);
-          newSchemas[newKey] = schema;
-        }
+      const document = SwaggerModule.createDocument(app, config, {
+        extraModels: [],
+        operationIdFactory: (controllerKey: string, methodKey: string) => `${controllerKey}_${methodKey}`,
+        deepScanRoutes: true,
+        ignoreGlobalPrefix: false,
+        include: [],
       });
 
-      document.components.schemas = newSchemas;
-    }
+      // Limpar e validar schemas para evitar propriedades quebradas
+      if (document.components && document.components.schemas) {
+        const schemas = document.components.schemas;
+        const validSchemas = {};
 
-    SwaggerModule.setup("api", app, document);
+        Object.keys(schemas).forEach(key => {
+          const schema = schemas[key];
+          if (schema && typeof schema === 'object' && key.length > 2) {
+            // Garantir que o schema tenha propriedades válidas
+            const schemaObj = schema as any;
+            if (schemaObj.properties || schemaObj.type || schemaObj.items) {
+              validSchemas[key] = schema;
+            }
+          }
+        });
+
+        document.components.schemas = validSchemas;
+      }
+
+      SwaggerModule.setup("api", app, document, {
+        swaggerOptions: {
+          persistAuthorization: true,
+          displayRequestDuration: true,
+          filter: true,
+          showExtensions: true,
+          showCommonExtensions: true,
+        },
+        customSiteTitle: 'GWAN API Documentation',
+        customCss: '.swagger-ui .topbar { display: none }',
+      });
+      logger.log('Swagger UI disponível em: /api');
+    } else {
+      logger.log('Swagger UI desabilitado em produção');
+    }
 
     app.useGlobalPipes(new ValidationPipe({
       whitelist: true,
